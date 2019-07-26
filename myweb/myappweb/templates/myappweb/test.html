@@ -1,0 +1,86 @@
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web</title>
+    <script type="text/javascript" src="static/DataTables-1.10.15/media/js/jquery.js"></script>
+    <script type="text/javascript" src="static/DataTables-1.10.15/media/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+  
+      </script>
+</head>
+<body>
+    <script>
+        $('#b1').click(function(){
+            alert("111")
+            var formdata1 = new FormData();
+            formdata1.append('upload',$('#upload')[0].files[0]);
+            $.ajax({
+                url:"/test",
+                type:"POST",
+                contentType:"multipart/form-data",
+                processData:false,
+                data:formdata1,
+                success:function(data){
+                   
+                    alter(data);
+                }
+                })
+        })
+
+        //function sub1()
+     // { 
+       // var form2 = document.getElementById("form");
+      //  form2.submit();
+      //}
+      
+      </script>
+<form action=""  enctype="multipart/form-data">
+  
+    
+    <p> <label>{{form1.photo.label}}</label>{{ form1.photo }} </p>
+    <input type="file" id="upload"/>
+    <p></p>
+<input type="button"  id="b1"  value="sumbit" />
+<div id="test_div">
+</form>
+
+<script>
+        $('#b1').click(function(){
+            
+            var formdata1 = new FormData();
+            formdata1.append('upload',$('#upload')[0].files[0]);
+            $.ajax({
+                url:"test",
+                type:"POST",
+                dataType : "json",
+                contentType:false,
+                processData:false,
+                data:formdata1,
+                success:function(data){
+                    $.each(data,function(i,value){
+                    alert(value);
+                })
+     
+           
+                }
+                })
+        })
+
+        //function sub1()
+     // { 
+       // var form2 = document.getElementById("form");
+      //  form2.submit();
+      //}
+      
+      </script>
+    {% if messages %}
+    <script type="text/javascript">
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+{% endif %}
+
+</body>
+</html>

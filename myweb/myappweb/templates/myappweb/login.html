@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web</title>
+    <script type="text/javascript">
+      function display_alert()
+        {
+        alert("I am an alert box!!")
+        }
+      </script>
+</head>
+<body>
+    <script>
+        function sub1()
+      { 
+        var form2 = document.getElementById("form");
+        form2.submit();
+      }
+      
+      </script>
+<form action="" method="POST" id="form">
+    {% csrf_token %}
+    
+    <p> <label>{{form.name.label}}</label>{{ form.name}} <span>{{errors.name}}</span></p>
+    <p> <label>{{form.pwd.label}}</label>{{ form.pwd}} <span>{{errors.pwd}}</span></p>
+<input type="button"  onclick="sub1()"  value="sumbit" />
+<form>
+    {% if messages %}
+    <script type="text/javascript">
+        {% for msg in messages %}
+            alert('{{ msg.message }}');
+        {% endfor %}
+    </script>
+{% endif %}
+
+</body>
+</html>
