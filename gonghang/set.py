@@ -8,6 +8,7 @@ from os import urandom
 from hashlib import sha1
 import requests
 import urllib 
+import re
 
 
 class setline(object):
@@ -54,23 +55,45 @@ class setaes():
 
 
     def dopost(self,uuid):
-        head= "<?xml version=\"1.0\" encoding=\"UTF-8\"?><HEADER><SHAPPID>%s</SHAPPID>" %self.s.getshappid() + "<ICBCHQAPPID>%s</ICBCHQAPPID>" %"0"+ "<REQUESTURI>%s</REQUESTURI>" %self.s.geturl()+ "<CLIENTIP>%s</CLIENTIP>" %self.s.getip()+ "<CLIENTHOSTNAME>%s</CLIENTHOSTNAME>" %self.s.getname()+ "<CLIENTUUID>%s</CLIENTUUID>"  %uuid+ "<PREV_UUID>%s</PREV_UUID>"  %""+ "<CLIENTTIMESTAMP>%s</CLIENTTIMESTAMP>"  %gettime()+ "<RETURNCODE>-1</RETURNCODE><RETURNMSG>UNKNOW</RETURNMSG></HEADER>"
+        head= "<?xml version=\"1.0\" encoding=\"UTF-8\"?><HEADER><SHAPPID>%s</SHAPPID>" %self.s.getshappid() + "<ICBCHQAPPID>%s</ICBCHQAPPID>" %"0"+ "<REQUESTURI>%s</REQUESTURI>" %self.s.geturl()+ "<CLIENTIP>%s</CLIENTIP>" %self.s.getip()+ "<CLIENTHOSTNAME>%s</CLIENTHOSTNAME>" %self.s.getname()+ "<CLIENTUUID>%s</CLIENTUUID>"  %uuid+ "<PREV_UUID></PREV_UUID>"+ "<CLIENTTIMESTAMP>%s</CLIENTTIMESTAMP>"  %gettime()+ "<RETURNCODE>-1</RETURNCODE><RETURNMSG>UNKNOW</RETURNMSG></HEADER>"
         iv = "1111111111111111"
-       
         key11= to16(self.s.getkey())
-
+        sh=head+self.s.getmsg()
         read = setaes.aes1encode(key11,head,iv)
         read2 = setaes.aes1encode(key11,self.s.getmsg(),iv)
-        enhead=read.decode()
+        enhead = read.decode()
         encmsg = read2.decode()
-        digest = sha(self.s.getmsg())
-        readyxml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+"<Trade><PUBLIC><SHAPPID>"+str(self.s.getshappid())+"</SHAPPID>" + "<REQUEST_ID>"+str(uuid)+"</REQUEST_ID>"  + "<PREV_UUID></PREV_UUID></PUBLIC>" + "<SHAPI><HEADER>"+str(enhead)+"</HEADER><REQUEST>"+str(encmsg)+"</REQUEST>" + "<RESPONSE></RESPONSE><DIGEST>"+str(digest)+"</DIGEST></SHAPI></Trade>" 
+        readyxml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+"<Trade><PUBLIC><SHAPPID>"+str(self.s.getshappid())+"</SHAPPID>" + "<REQUEST_ID>"+str(uuid)+"</REQUEST_ID>"  + "<PREV_UUID></PREV_UUID></PUBLIC>" + "<SHAPI><HEADER>"+str(enhead)+"</HEADER><REQUEST>"+str(encmsg)+"</REQUEST>" + "<RESPONSE></RESPONSE><DIGEST>"+str(sha(sh))+"</DIGEST></SHAPI></Trade>" 
 
         cospurl = self.s.getbaseurl()+self.s.geturl()
         way="SHAPI"
-        version="00001"
+        version="00002"
         
-        return enhead
+        tex=docospPost(way,version,readyxml,cospurl)
+   
+        obj=re.search(r'<HEADER>([\s\S]*)</HEADER><REQUEST></REQUEST><RESPONSE>([\s\S]*)</RESPONSE>',str(tex))
+        de1 = decrypt1(to16(self.s.getkey()),obj.group(1),iv)
+        de2 = decrypt1(to16(self.s.getkey()),obj.group(2),iv)
+        de11=de1.decode()
+        de12=de2.decode()
+        le1=len(de11)
+        le2=len(de12)
+        de11=de11[7:le1-14]
+        de12=de12[7:le2-14]
+        de1obj=re.search(r'<RETURNCODE>([\s\S]*)</RETURNCODE><RETURNMSG>([\s\S]*)</RETURNMSG>',de11)
+        ls=[]
+        if int(de1obj.group(1)) == 0:
+            ls.append('0')
+            ls.append(de12)
+            
+        else:
+            ls.append(de1obj.group(1))
+            ls.append(de1obj.group(2))
+        return ls
+
+        
+
+        return obj 
 
     @classmethod
     def aes1encode(cls,key,something,IV):
@@ -87,10 +110,11 @@ class setaes():
         s2=str(ss.decode()).replace("=","")[0:14]
         something=s1+something+s2
         cryp = AES.new(key,AES.MODE_CBC,IV.encode("utf8"))
-        bs=len(key) 
+        bs=16 
         pad = lambda s: s + ((bs - len(s) % bs) * chr(bs - len(s) % bs)).encode('utf-8')
         so=something.encode("utf8")
         chiphertext = cryp.encrypt(pad(so))
+        
         return base64.b64encode(chiphertext)
 
 
@@ -100,8 +124,10 @@ def docospPost(appcde,trxcode,msg,cospurl):
     "Content-Type":"application/x-www-form-urlencoded"
 }
     sb="cosp="+urllib.parse.quote(msg, safe='/', encoding="utf-8", errors=None)+"&appcode="+str(appcde)+"&trxcode="+str(trxcode)
-    r = requests.post(cospurl,data=sb.encode(),headers=headers)
-    return r
+    r = requests.post(cospurl,data=sb.encode("utf-8"),headers=headers)
+    return r.text
+
+
 def baidu():
     r=requests.get("http://baidu.com")
     return r
@@ -144,13 +170,26 @@ def gettime():
     ti =  "".join([time2[time2.find(".")+x]  for x in range(1,4)])
     return str(st)+"-"+str(ti)
 
+
+
 if __name__=="__main__":
     s =setline()
-    s.setkey("48400552514989144C739E3221728BB9E6F346A3Ac37E6DC7DBD668D6FB6BAB3")
-    s.seturl("shlocal/housepledge/commplate/qurey/dict")
+    s.setkey("48400552514989144C739E3221728BB9E6F346A3AC37E6DC7DBD668D6FB6BAB3")
+    s.seturl("/shlocal/housepledge/assessplate/query/applylist")
     s.setshappid("shapp.housepledge.xinheng")
-    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\"}")
+    tim=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
+    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\"1546272000000\",\"endDate\":\"1564365767000\",\"assessStatus\":\"6\"}")
+   # s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2019-01-01 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"6\"}")
     getnameip = str(getip()).split(",")
     s.setip(getnameip[0])
     s.setname(getnameip[1])
     ss = setaes(s)
+    uuid1=uuid.uuid1()
+    print(ss.dopost(uuid1))
+
+   # print(decrypt1(to16(s.getkey()),"A7mWGnvMGCdUYcemzV7EuBBgSRL1RIxSeLnkgvtAkKMIRxQ64AHi2YaiG3WUrexC",iv))
+
+
+
+
+    

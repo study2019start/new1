@@ -43,7 +43,26 @@ class app(object):
                 print("-----------------")
     
 
-
+    def houseCert(self,idq,applyNo,houseCertNo):
+        self.sit.seturl("/shlocal/housepledge/assessplate/query/houseCert")
+        m="{\"corpId\":\""+str(idq)+"\",\"emplName\":\""+str(name)+"\",\"applyNo\":\""+str(applyNo)+"\",\"houseCertNo\":\""+str(houseCertNo)+"\"}"
+        
+        self.sit.setmsg(m)
+        ss=setaes(self.sit)
+        uuid1=uuid.uuid1()
+        ls=ss.dopost(uuid1)
+        
+        if int(ls[0])==0:
+            msg=json.loads(ls[1])
+            
+            print(msg['total'])
+            for item in msg['rows']:
+                at=int(int(item["applyTime"])/1000)
+                tat=time.strftime("%Y-%m-%d",time.localtime(at))
+                item["applyTime"]=tat
+                for k,t in item.items():
+                    print(str(k)+":"+str(t))
+                print("-----------------")
 
 
 def getip():
