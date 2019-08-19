@@ -11,6 +11,7 @@ import urllib
 import re
 import json
 from set import setline,setaes
+import os
 
 class app(object):
     def __init__(self):
@@ -38,12 +39,13 @@ class app(object):
                 at=int(int(item["applyTime"])/1000)
                 tat=time.strftime("%Y-%m-%d",time.localtime(at))
                 item["applyTime"]=tat
+                
                 for k,t in item.items():
                     print(str(k)+":"+str(t))
                 print("-----------------")
     
 
-    def houseCert(self,idq,applyNo,houseCertNo):
+    def houseCert(self,idq,name,applyNo,houseCertNo,path,s):
         self.sit.seturl("/shlocal/housepledge/assessplate/query/houseCert")
         m="{\"corpId\":\""+str(idq)+"\",\"emplName\":\""+str(name)+"\",\"applyNo\":\""+str(applyNo)+"\",\"houseCertNo\":\""+str(houseCertNo)+"\"}"
         
@@ -54,15 +56,22 @@ class app(object):
         
         if int(ls[0])==0:
             msg=json.loads(ls[1])
+            print(msg['resultCode'])
+            print(msg)
             
-            print(msg['total'])
-            for item in msg['rows']:
-                at=int(int(item["applyTime"])/1000)
-                tat=time.strftime("%Y-%m-%d",time.localtime(at))
-                item["applyTime"]=tat
-                for k,t in item.items():
-                    print(str(k)+":"+str(t))
-                print("-----------------")
+                
+            fn=str(time.strftime("%Y%m%d%H%M%S",time.localtime()))
+            fn=fn+s
+            p1 = str(path)+ "\\"+fn
+            if not os.path.exists(p1):
+                os.makedirs(p1)
+            pp=str(p1)+"\\"+str(msg['fileName'])
+            
+            some=base64.b64decode(msg['hugeDataField'])
+            with open(pp,"wb") as f:
+                f.write(some)
+            print("-----------------")
+
 
 
 def getip():
@@ -76,4 +85,5 @@ def zhuanshijianchuo(time1):
 if __name__=="__main__":
     ap=app()
     idq="ASS00113"
-    ap.applylist(idq,"赵晓芸",zhuanshijianchuo("2019-01-01 00:00:00"),int(time.time()*1000),"6")
+    #ap.applylist(idq,"赵晓芸",zhuanshijianchuo("2019-07-01 00:00:00"),int(time.time()*1000),"6")
+    ap.houseCert(idq,"赵晓芸","AID0000000061","90040100100106190812101916240C00",r"D:\housc","上海市浦东新区688弄20号402室")

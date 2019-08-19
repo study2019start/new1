@@ -30,7 +30,7 @@ class Cjdj_info(models.Model):
     dj = models.FloatField()
     cjdate = models.DateTimeField()
     down = models.FileField(upload_to=upload_to)
-
+    area = models.TextField(max_length=500, null=True,blank=True)
 
 def __str__(self):
     return self.text

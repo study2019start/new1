@@ -1,10 +1,10 @@
-import MySQLdb
+import pymysql
 
 #db = MySQLdb.connect( "localhost", "root", "111", "xiaoqu", charset='utf8' )
 
 class xiaoqu_mysql_lou(object):
     def __init__(self):
-        self.db=MySQLdb.connect( "localhost", "root", "111", "xiaoqu", charset='utf8' )
+        self.db=pymysql.connect( "localhost", "root", "111", "xiaoqu", charset='utf8' )
     
     def insert(self,wherelist):
         field = []
