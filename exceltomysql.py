@@ -6,13 +6,59 @@ import time
 import threading
 from access import access_model
 import os
-class etom():
-    def __init__(self,path):
-        self.li=['area','lx','dizhi','mianji','zongjia','dj','cjdate','down']
 
+queueLock = threading.Lock()
+class thred(threading.Thread):
+    def __init__(self,n,li,dbn):
+        threading.Thread.__init__(self)
+        self.name1=n
+        self.li=li
+        self.dbname=dbn
+        self.lie=[]
+    def run(self):
+        rs=xunh(self.name1,self.li)
+        for i,rs1 in enumerate(rs):
+            s= self.read_excel(rs1)
+            self.accessup(s,str(self.li[i]).replace(".xls","").replace(".xlsx",""),self.dbname)
+
+
+    def read_excel(self,filename):
+        dataa = []
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
+        ra = sheet.nrows
+        na= sheet.ncols 
+        for aa in range(0,na):
+            self.lie.append(sheet.cell_value(0,aa))
+        for i in range(1,ra):
+            a=[]
+            for s in range(0,na):
+                v = sheet.cell_value(i,s)
+                a.append(v)
+            dataa.append(a)
+        return dataa
+
+    def accessup(self,s,tablename,dbn):
+        mm=access_model(dbn)
+        l1=[]
+        l2=[]
+        lis=self.lie[1:len(self.lie)]
+        for ss in s:
+            dd={}
+            id1={}
+            for i,l in enumerate(lis):
+                dd[l]=ss[i+1]
+
+            id1[self.lie[0]]=str(ss[0])
+            l1.append(dd)
+            l2.append(id1)
+        #print(l1)
+        queueLock.acquire()
+        mm.update(l1,l2,tablename)
+        self.lie=[]
+        queueLock.release()
 
 async def readex(b,start):
-   
     s=start+1000
     #mm = mysql_model()
     sheet1 = b.sheet_by_index(0)
@@ -29,36 +75,13 @@ async def readex(b,start):
     #await pr(lis)
     #await mm.manyinsert(self.li,lis,"myappweb_cjdj_info")
     #mm.manyinsert(self.li,lis,"myappweb_cjdj_info")
-def read_excel(filename):
-    dataa = []
-    book = xlrd.open_workbook(filename)
-    sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
-    ra = sheet.nrows
-    na= sheet.ncols 
-    for i in range(0,ra):
-        a=[]
-        for s in range(2,na):
-            v = sheet.cell_value(i,s)
-            a.append(v)
-        dataa.append(a)
-    return dataa
 
-def accessup(s,tablename):
-    mm=access_model()
-    l1=[]
-    l2=[]
-    for ss in s:
-        dd={}
-        dd['name1']=ss[1] 
-        dd['dis']=ss[2]
-        id1=str(ss[0])
-        l1.append(dd)
-        l2.append(id1)
-    
-    mm.update(l1,l2,tablename)
 
-def accessselectm(s,tablename):
-    
+def accessselectm(s,tablename,dbn):
+    mm=access_model(dbn)
+    res=mm.muselect(s,tablename)
+    return res
+
 
 async def pr(ss):
     end = time.time()
@@ -69,17 +92,27 @@ async def pr(ss):
     print(str(time.strftime("%H:%M:%S",time.localtime(end)))+" :"+str(d)+"--"+str(ss))
     
 def xunh(n,li):
+    ls=[]
     for lli in li:
-        s=read_excel(os.path.join(n,lli))
-        print(s)
-        accessup(s,lli)
+        ls.append(os.path.join(n,lli))
+    return ls
+       
 
 if __name__ == "__main__":
     t=time.time()
     #coo1=[0,1000,2000,3000,4000,5000]
     br=r'F:\地价\2019区段\静安区'
-    r= [r'jasy.xls']
-    xunh(br,r)
+    r= [r'住宅样点_静2.xls']
+    r2=[r'宅样点_虹2.xls']
+    thread=[]
+    t1=thred(br,r,"3.2014年区段子单元—静安.mdb")
+    t2=thred(br,r2,"3.2014年区段子单元—虹口.mdb")
+    t1.start()
+    t2.start()
+    thread.append(t1)
+    thread.append(t2)
+    for tt in thread:
+        tt.join()
     #path=r"D:\21.xls"
     
     #b = xlrd.open_workbook(path)

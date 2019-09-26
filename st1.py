@@ -7,7 +7,7 @@ from setclopboard import Sc
 
 
 def screenshot():
-    if keyboard.wait(hotkey='f1') == None:
+    if keyboard.wait('ctrl+1') == None:
         
             time.sleep(0.01)
 
