@@ -23,7 +23,31 @@ re7=r"<span+.*>(.*)</span>"
 re8=r'href=\"(.*\.fang\.com|.*\.fang\.com\/\d{1,2})\/\"'
 re9=r'<a.*>(.*)</a>'
 re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
+re11=r'>(\w\W)<'
 
+class firstsou(object):
+    def __init__(self,path):
+        self.fp=path
+
+    def run(self):
+        fname=self.fp
+        #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
+        lists1=read_excel(fname,'Sheet1',3)
+    # print(lists1)
+        longlis=[]
+        mul=Pool(6)
+        qq=Manager().Queue()
+        for lsd in lists1:
+            mul.apply_async(runss,(lsd,qq))
+        mul.close()
+        mul.join()
+        sflist=[]
+        while not qq.empty():
+            sflist.append(qq.get())
+        sortlist=sflist.sort(key=lambda x: x[6])
+        xlww=model_excel()
+        df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
+        xlww.xlwingwirte(df,fname,'Sheet1',True)
 
 
 def runss(lo,qp): 
@@ -43,12 +67,12 @@ def searchbegin(lo):
     dd['city']='上海'
     url='https://sh.newhouse.fang.com/house/ajaxrequest/search_keyword_submit.php?t='+rand()
     ls=['','','','','','',-1]
-
+    slo=[]
     ls[6] = lo[1]
     if str(lo[0]).find(",") > 0:
-        slo = lo[0].split(',')
+        slo = [x for x in lo[0].split(',')]
     else:
-        slo = [lo[0], ]
+        slo.append(lo[0])
     for sslo in slo:
         dd['keyword'] = sslo
         result=requests.post(url,data=dd,headers=head)
@@ -61,7 +85,7 @@ def searchbegin(lo):
             ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030'))
             ls.append(lo[1])
             return ls
-        elif sp[0] =='102':
+        else:
             d2={}
             d2['type']='urlencode'
             d2['data']=sslo
@@ -141,7 +165,7 @@ def  readhtml(html1):
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
         if so1:
             #stf1=re.search(re6,str(so1[0])).group(1)
-            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace("</>","").replace("\n","")
+            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","")
            
            
             ls[0]=stf1
@@ -159,7 +183,7 @@ def  readhtml(html1):
             elif str(soupr.string).find("开盘时间：")>-1:
                 str2=''
                 str1= str(so[i+1])
-                if str1.find('预计')>-1:
+                if str1.find('预计') >-1 and  str1.find("加推")==-1:
                     str2=str1
                 else:
                     res1=re.findall(re2,str1)
@@ -294,7 +318,8 @@ if __name__ == "__main__":
     #lists=["恒文星尚湾","昱龙家园"]
     fname=r"E:\一手典型楼盘.xlsx"
     #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    lists1=read_excel(fname,'Sheet1',3)
+    #lists1=read_excel(fname,'Sheet1',3)
+    lists1=[["禹洲雍锦府",1]]
    # print(lists1)
     longlis=[]
     mul=Pool(6)
