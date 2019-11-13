@@ -5,7 +5,7 @@ import time
 
 class access_model(object):
     def __init__(self,dbname):
-        self.db1 = "Driver={Microsoft Access Driver (*.mdb,*.accdb)};DBQ=F:\\地价\\2019区段\\静安区\\"+str(dbname)
+        self.db1 = "Driver={Microsoft Access Driver (*.mdb,*.accdb)};DBQ=F:\\地价\\2019区段\\x6\\"+str(dbname)
         self.re=r'(?P<value>(?=[\x21-\x7e]+)[^A-Za-z0-9])'
     def insert(self,wherelist,tablename):
         field = []
@@ -130,7 +130,7 @@ class access_model(object):
                     if re.search(self.re,st):
                         st=re.sub(self.re,replace1,st)
                         st=st
-                    mu = str(v)+"=\'"+st+"\'"
+                    mu = str(v)+"='"+st+"'"
                 mulis = mulis+(mu,) 
             alllis = alllis+(' and ').join(mulis)
         else:
