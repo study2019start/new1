@@ -4,17 +4,17 @@ import xlwt
 
 global a
 a = []
-def bianli(path):
+def bianli(path,find):
     global a
     if os.path.exists(path):
         list = os.listdir(path) #列出文件夹下所有的目录与文件
         for i in range(0,len(list)):
             path1 = os.path.join(path,list[i])
             if os.path.isfile(path1):
-                if path1.find("xls")>0:
+                if path1.find(find)>0:
                     a.append(path1)
             else:
-                bianli(path1)
+                bianli(path1,find)
 
 def read_excel(filename):
     dataa = []
@@ -54,14 +54,14 @@ def read_excel(filename):
     dataa.append(v6)
     dataa.append(v7)
     dataa.append(v8)
-    return  dataa  #读取指定单元格的数据
+    return dataa  #读取指定单元格的数据
 
 def read_excel2(filename):
     dataa = []
     book = xlrd.open_workbook(filename)
     sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
     ro = sheet.nrows
-    for i in range(0,ro):
+    for i in range(1,ro):
         dis={}
         dis['old']=sheet.cell_value(i,0)
         dis['newn']=sheet.cell_value(i,1)
@@ -69,30 +69,58 @@ def read_excel2(filename):
     return dataa
 
 
+def read_excel3(a):
+    dataa1 = []
+    for aa in a:# 遍历xls文件路径
+        book = xlrd.open_workbook(aa)
+        sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
+        ro = sheet.nrows
+        for i in range(5,ro):
+            dataa = [] #存储一行的数据
+            if sheet.cell_value(i,1):
+                v1=sheet.cell_value(i,1)
+                v2=sheet.cell_value(i,5)
+                dataa.append(v1)
+                dataa.append(v2)
+            else:
+                break
+            dataa1.append(dataa)  #存储所有行的数据
+    return dataa1
+
 def exlcelwrite(a, filename):
     book = xlwt.Workbook()            #创建excel对象
     sheet = book.add_sheet('sheet1')  #添加一个表
-    c = 0  #保存当前列
+    c = 0  
     for d in a: #取出data中的每一个元组存到表格的每一行
         for index in range(len(d)):   #将每一个元组中的每一个单元存到每一列
             sheet.write(c,index,d[index])
         c += 1
     book.save(filename)
 
-def newname(namelist,filename):
+def newname(namelist,filename):#重命名文件夹
     if os.path.exists(filename):
-        lis= os.listdir(filename)
-        for l in lis:
-            if os.path.isdir(os.path.join(filename,l)):
+        for l in namelist:
+            print(l)
+            if os.path.isdir(os.path.join(filename,l['old'])):
                 o = os.path.join(filename,l['old'])
                 n = os.path.join(filename,l['newn'])
                 os.rename(o,n)
 
 if __name__ == '__main__': 
-    p=r"E:\工作\2019区段地价\虹口息补充材料"
-    bianli(p)
+    
+    p=r"F:\地价\任务"
+    f1="准宗地调查表"
     bb=[]
-    r=r"E:\工作\2019区段地价\虹口息补充材料\hk.xls"
-    for  aa in a:
-        bb.append(read_excel(aa))
+    r=r"F:\地价\任务\2.xls"
+    bianli(p,f1)
+    bb=read_excel3(a)
+    print(bb)
     exlcelwrite(bb,r)
+   # newname(da,r"F:\地价\2019区段\静安照片 - 副本")
+    # p=r"E:\工作\2019区段地价\虹口息补充材料"
+    # bianli(p)
+    # bb=[]
+    # r=r"E:\工作\2019区段地价\虹口息补充材料\hk.xls"
+    # for  aa in a:
+    #     bb.append(read_excel(aa))
+    # exlcelwrite(bb,r)

@@ -5,7 +5,7 @@ import time
 
 class access_model(object):
     def __init__(self,dbname):
-        self.db1 = "Driver={Microsoft Access Driver (*.mdb,*.accdb)};DBQ=F:\\地价\\2019区段\\x6\\"+str(dbname)
+        self.db1 = "Driver={Microsoft Access Driver (*.mdb,*.accdb)};DBQ=F:\\地价\\2019区段\\x7\\"+str(dbname)
         self.re=r'(?P<value>(?=[\x21-\x7e]+)[^A-Za-z0-9])'
     def insert(self,wherelist,tablename):
         field = []
