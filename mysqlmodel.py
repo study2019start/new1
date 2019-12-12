@@ -50,14 +50,14 @@ class mysql_model(object):
 
     def update(self,whe,id,tablename):
         value = []
+        dbb=self.db1.connection()
+        cur = dbb.cursor()
         s = ()
         s1 = "%s"
         for k,v in whe.items():
             value.append(v)
             s = s+(k+"="+s1,)
         value.append(id)
-        dbb=self.db1.connection()
-        cur = dbb.cursor()
         st ="update %s  set %s  " % (tablename,','.join(s))
         req = cur.execute(st+" where id= %s ",value)
         dbb.commit()

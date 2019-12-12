@@ -2,6 +2,28 @@ import os
 import xlrd
 import xlwt
 
+class xlsread(object):
+    def __init__(self,path):
+       self.p=path
+
+
+    def readx(self):
+        book = xlrd.open_workbook(self.p)
+        sheet = book.sheet_by_index(0)
+        ro=sheet.nrows
+        lo=sheet.ncols
+        da=[]
+        for row in range(0,ro):
+            for l in range(0,lo):
+                sa=[]
+                sa.append(sheet.cell_value(row,l))
+
+            da.append(sa)
+        
+        return da
+
+
+
 global a
 a = []
 def bianli(path,find):

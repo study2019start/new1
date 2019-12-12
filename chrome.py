@@ -38,7 +38,7 @@ def op1(v):
     get_elems(driver,('xpath','//li[@class=\'menunotice\']'),4).click()
     
     lxl = ("花园住宅","联列住宅","公寓","其他")
-    s=3987
+    s=1
     for vv in v:
         iframe =  get_elem(driver,('id','mainframe'))
         driver.switch_to.frame(iframe)
@@ -76,7 +76,7 @@ def op1(v):
             y['lx']="公寓"
             print(y)
             my = xiaoqu_mysql_zong()
-            my.insert(y)
+            my.insert('pdzongbiao',y)
             get_elems(driver,('xpath','//a[@class=\'tabs-inner\']'),3).click()
               
             if EC.presence_of_all_elements_located((By.XPATH,'//input[@name=\'BUILDING_LOCATION\']'))(driver):
@@ -424,6 +424,6 @@ if __name__=="__main__":
    # b = xzz.selectdizhi(a)
 
     #print(b)
-    c =(('上和园','新江湾城','内中环间','国安路355弄、国安路259弄','国安路','清流环一路，政云路','三门路北侧绿地，三门路','清流环一路，民府小区','公寓','商品房','2015','新江湾城街道','政立路第二居委会','上海市杨浦区复旦科技园小学'),)
-    op3(c)
+   # c =(('上和园','新江湾城','内中环间','国安路355弄、国安路259弄','国安路','清流环一路，政云路','三门路北侧绿地，三门路','清流环一路，民府小区','公寓','商品房','2015','新江湾城街道','政立路第二居委会','上海市杨浦区复旦科技园小学'),)
+  #  op3(c)
     #op1(b)

@@ -33,7 +33,7 @@ class xiaoqu_mysql_zong(object):
 
 
 
-    def insert(self,wherelist):
+    def insert(self,bname,wherelist):
         field = []
         value = []
         s = ()
@@ -43,7 +43,7 @@ class xiaoqu_mysql_zong(object):
             value.append(v)
             s = s+(s1,)
         cur = self.db.cursor()
-        st ="insert into zongtable ( %s ) values " % ','.join(field)
+        st ="insert into "+bname+" ( %s ) values " % ','.join(field)
         req = cur.execute(st+"("+','.join(s)+")",value)
         self.db.commit()
         cur.close()

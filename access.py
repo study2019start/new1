@@ -90,7 +90,7 @@ class access_model(object):
         mure=()
         mure=mure+(tablename,)
         if mu:
-            for v in mu:
+            for v,v1 in mu.items:
                 if isinstance(mu[v],int) or isinstance(mu[v],float):
                     mu=str(v)+"="+str(mu[v])
                 else:
@@ -122,7 +122,7 @@ class access_model(object):
         mulis=()
         alllis="where "
         if mu:
-            for v in mu:
+            for v,v1 in mu.items:
                 if isinstance(mu[v],int) or isinstance(mu[v],float):  
                     mu=str(v)+"="+str(mu[v])
                 else:
