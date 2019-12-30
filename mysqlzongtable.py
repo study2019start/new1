@@ -44,7 +44,9 @@ class xiaoqu_mysql_zong(object):
             s = s+(s1,)
         cur = self.db.cursor()
         st ="insert into "+bname+" ( %s ) values " % ','.join(field)
-        req = cur.execute(st+"("+','.join(s)+")",value)
+        st1=st+"("+','.join(s)+")"
+        print(st1)
+        req = cur.execute(st1,value)
         self.db.commit()
         cur.close()
         return req

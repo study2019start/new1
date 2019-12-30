@@ -10,10 +10,17 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.select import Select
 from mysqlzongtable import xiaoqu_mysql_zong
 import json
+from xls import xlsread
+
 
 def get_elem(brow,aa,time=15):
-    element = WebDriverWait(brow,time).until(lambda x:x.find_element(*aa))
-    return element
+    try:
+        element = WebDriverWait(brow,time).until(lambda x:x.find_element(*aa))
+        return element
+    except BaseException:
+        print(BaseException)
+        return None
+    
 
 
 def get_elems(brow,aa,x,time=15):
@@ -26,7 +33,7 @@ def get_elemsa(brow,aa,time=15):
     return elements
 
 def op1(v):
-    __browser_url = r'C:\Users\thl\AppData\Local\Google\Chrome\Application\chrome.exe'  #360浏览器的地址
+    __browser_url = r'C:\Users\thl\AppData\Local\Google\Chrome\Application\chrome.exe'  #浏览器的地址
     chrome_options = Options()
     chrome_options.binary_location = __browser_url
     chrome_options.add_argument('disable-infobars')
@@ -38,12 +45,15 @@ def op1(v):
     get_elems(driver,('xpath','//li[@class=\'menunotice\']'),4).click()
     
     lxl = ("花园住宅","联列住宅","公寓","其他")
-    s=1
+    ss=xiaoqu_mysql_lou()
+    s=int(str(ss.select('pdlou',None,'id','desc',1)[0][0]))+1
+    print(s)
     for vv in v:
         iframe =  get_elem(driver,('id','mainframe'))
         driver.switch_to.frame(iframe)
         ele = get_elem(driver,('id','COMMUNITY_NAME'))
-        driver.execute_script("arguments[0].value=''",ele)
+        ele.clear()
+        #driver.execute_script("arguments[0].value=''",ele)
         ele.send_keys(vv[1])
         Select(get_elem(driver,('id','CURRENT_STEP_ID'))).select_by_value("22")
         get_elem(driver,('xpath','//a[@class=\'mlinkbutton searchbtn\']')).click()
@@ -61,6 +71,7 @@ def op1(v):
             yy = get_elemsa(driver,('xpath','//table[@class=\'formtable\']//td[@class=\"content\"]'))
             y = {}
             y['id']=str(vv[0])
+            y['name'] =yy[0].get_attribute('innerHTML')
             y['year'] =yy[1].get_attribute('innerHTML')
             y['dis']=yy[3].get_attribute('innerHTML')
             y['xiaoqushux']=yy[5].get_attribute('innerHTML')
@@ -76,7 +87,7 @@ def op1(v):
             y['lx']="公寓"
             print(y)
             my = xiaoqu_mysql_zong()
-            my.insert('pdzongbiao',y)
+            my.insert('pdzongtable',y)
             get_elems(driver,('xpath','//a[@class=\'tabs-inner\']'),3).click()
               
             if EC.presence_of_all_elements_located((By.XPATH,'//input[@name=\'BUILDING_LOCATION\']'))(driver):
@@ -84,6 +95,7 @@ def op1(v):
                 lx = iter(get_elemsa(driver,('xpath','//select[@name=\'TYPE_ID\']')))
                 next(lou)
                 next(lx)
+                lls=[]
                 for ou,x in zip(lou,lx):
                     use1 = int(x.get_attribute('oldval'))-1
                     use2 = ou.get_attribute('value')
@@ -94,34 +106,46 @@ def op1(v):
                     ll = dict(zip(l,m))
                     s= s+1
                     print(str(s)+ou.get_attribute('value')+"-----"+str(lxl[use1]))
-                    time.sleep(2)
-                    mys.insert(ll)
+                    lls.append(ll)
+                mys.manyinsert("pdlou",lls)
             elif EC.presence_of_all_elements_located((By.CLASS_NAME,'trChangeColor'))(driver):   
                 lou1 = get_elemsa(driver,('xpath','//tr[@class=\'trChangeColor\']//td[1]'))
                 lou2 = get_elemsa(driver,('xpath','//tr[@class=\'trChangeColor\']//td[4]'))
                 a = 0  
+                lls=[]
                 for lo in lou1:
                     ld = lo.get_attribute('innerHTML')
                     lx2 = lou2[a].get_attribute('innerHTML')  
                     a += 1
-                    mys = xiaoqu_mysql_lou()
+                    mys1 = xiaoqu_mysql_lou()
                     m = (s,ld,lx2,"","",str(vv[0]))
                     ll = {}
                     l = ("id","louname","lx","loucen","jiegou","z_id")
                     ll = dict(zip(l,m))
                     print(str(s)+"-----"+str(lx2)+"-----"+str(vv[0]))
-                    time.sleep(2)
+                    lls.append(ll)
                     s=s+1
-                    mys.insert(ll)
+                mys1.manyinsert("pdlou",lls)
+            lls=[]
             driver.switch_to.default_content()
-            time.sleep(2)
+            time.sleep(1)
             ff = get_elem(driver,('xpath','//iframe[@frameborder=\'0\']'))
             driver.switch_to.frame(ff)
             time.sleep(1)
-            driver.find_element_by_css_selector("[class='mlinkbutton closebtn']").click()
+            glclose=get_elem(driver,('class name','icon-close'))
+            if glclose:
+                try:
+                    glclose.click()
+                    driver.switch_to.default_content()
+                except:
+                    driver.refresh()
+            else:
+                driver.refresh()
+            #driver.find_element_by_css_selector("[class='mlinkbutton closebtn']").click()
             #get_elem(driver,('xpath','//a[@class=\'mlinkbutton closebtn\']')).click()
         print(1)
         driver.switch_to.default_content()
+        
 
 
     time.sleep(30)
@@ -419,7 +443,11 @@ def jiedao(s):
             return i
 
 if __name__=="__main__":
-    xzz = xiaoqu_mysql_zong()
+    #xzz = xiaoqu_mysql_zong()
+    zz=xlsread('E://小区//南汇小区名.xls')
+    ff=zz.readx()
+    print(ff)
+    op1(ff)
    # a = "order by  id  limit 559,300 "
    # b = xzz.selectdizhi(a)
 

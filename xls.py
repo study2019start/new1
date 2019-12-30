@@ -14,8 +14,8 @@ class xlsread(object):
         lo=sheet.ncols
         da=[]
         for row in range(0,ro):
+            sa=[]
             for l in range(0,lo):
-                sa=[]
                 sa.append(sheet.cell_value(row,l))
 
             da.append(sa)
