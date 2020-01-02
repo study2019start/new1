@@ -6,35 +6,37 @@ import xlrd
 import xlwt
 import time
 
+he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
+head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+re1=r"[\u4e00-\u9fa5]+"
+re2=r"(\d{4})年(\d{1,2})月(\d{1,2})日"
+re3=r".*([^\d{4}-]\d{2,3}-\d{1,4})+.*"
+re4=r".*[\u4e00-\u9fa5](\d{2,3}-\d{1,4})[㎡|平].*"
+re5=r".*面(\d{2,4}㎡)+.*"
+re6=r"<em>+([\w\W])+</em>"
+re7=r"<span+.*>(.*)</span>"
+re8=r'href=\"(.*)\/\"'
+re9=r'<a.*>(.*)</a>'
+re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
+
 class Soufang(object):
     def __init__(self,loulist):
         self.lou=loulist
-        self.re1=r"[\u4e00-\u9fa5]+"
-        self.re2=r"(\d{4})年(\d{1,2})月(\d{1,2})日"
-        self.re3=r".*([^\d{4}-]\d{2,3}-\d{1,4})+.*"
-        self.re4=r".*(\d{2,3}-\d{1,4})+.*"
-        self.re5=r".*面(\d{2,4}㎡)+.*"
-        self.re6=r"<em>+([\w\W])+</em>"
-        self.re7=r"<span+.*>(.*)</span>"
-        self.re8=r'href=\"(.*)\/\"'
-        self.re9=r'<a.*>(.*)</a>'
-        self.re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
+
     def souf(self):
         resultlist=[]
-        ls=['','','','','','']
        
         for lo in self.lou:
-            resultlist.append(searchbegin(lo,self.re1,self.re2,self.re3,self.re4,self.re5,self.re6,self.re7,self.re8,self.re9,self.re10))
-
+            resultlist.append(searchbegin(lo))
+            time.sleep(2)
         #for resf in resultlist:
         #    print(resf)
         return resultlist
 
-def searchbegin(lo,re1,re2,re3,re4,re5,re6,re7,re8,re9,re10):
+def searchbegin(lo):
+    time.sleep(1)
     dd={}
     dd['city']='上海'
-    he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
-    head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
     url='https://sh.newhouse.fang.com/house/ajaxrequest/search_keyword_submit.php?t='+rand()
     ls=['','','','','','']
     slo =lo.split(',')
@@ -47,7 +49,7 @@ def searchbegin(lo,re1,re2,re3,re4,re5,re6,re7,re8,re9,re10):
             url1='https:'+sp[1]+ '?xf_source='+lo
             print(url1)
             result2=requests.get(url1,headers=he)
-            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030'),re1,re2,re3,re4,re5,re6,re10)
+            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030'))
             return ls
         elif sp[0] =='102':
             d2={}
@@ -70,7 +72,7 @@ def searchbegin(lo,re1,re2,re3,re4,re5,re6,re7,re8,re9,re10):
                         if sslo.find(sw) >=0 or sw.find(sslo)>=0:
                             swref=re.findall(re8,str(ww))
                             result22=requests.get('https:'+swref[0],headers=he)
-                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'),re1,re2,re3,re4,re5,re6,re10)
+                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'))
                             return ls
                     elif re.search(re9,str(ww)):
                         if so33:
@@ -83,15 +85,16 @@ def searchbegin(lo,re1,re2,re3,re4,re5,re6,re7,re8,re9,re10):
                         if sslo.find(sw) >=0 or sw.find(sslo)>=0:
                             swref=re.findall(re8,str(ww))
                             result22=requests.get('https:'+swref[0],headers=he)
-                            ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'),re1,re2,re3,re4,re5,re6,re10)
+                            ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'))
                             return ls
     return ls
 
 
-def  readhtml(html1,re1,re2,re3,re4,re5,re6,re10):
+def  readhtml(html1):
+    time.sleep(2)
     ls=['','','','','','']
     sw=[]
-    he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
+    tt=True
     soup=BeautifulSoup(html1,"html.parser")
     w33=soup.select('div[id="orginalNaviBox"] >a')
     if w33:
@@ -149,19 +152,51 @@ def  readhtml(html1,re1,re2,re3,re4,re5,re6,re10):
                 print(str2)
         so=soup.select('div[class="main-item"] > div[class="main-table"] > div[class="table-part"] > table >tr >td')
         for sof in so:
-            res3=re.search(re3, str(sof))
-            if res3:
-                ree=res3.group(1)
-                print(ree)
-                re4=re.search(re4,str(ree))
-                if re4:
-                    rs4=re4.group(1)
-                    ls[2]=ls[2]+rs4+'㎡'
-                    ls[3]=str(sof)
-                    print(rs4+"  "+str(sof))
-                    break
+            re41=re.search(re4,str(sof))
+            if re41:
+                rs4=re41.group(1)
+                print(rs4)
+                ls[2]=ls[2]+rs4+'㎡'
+                ls[3]=str(sof)
+                print(rs4+"  "+str(sof))
+                tt=False
+                break
+        if tt:
+            if ls[4]!='':
+                ls[2]=ls[2]+maopao(ls[4])
+                
     return ls
-                    
+
+def maopao(lid):
+    maolist=lid.replace('㎡','').split(',')
+    ml=[]
+    print(maolist)
+    for mm in maolist:
+        if str(mm).isdigit():
+            ml.append(int(mm))
+        else:
+            return ''
+    print(ml)
+    if len(ml)==1:
+        return str(ml[0])+"㎡"
+    i=len(ml)-1
+    for ia in range(0,i):
+        mtf=True
+        for ib in range(0,i-ia):
+            if ml[ib]>ml[ib+1]:
+                temp=ml[ib]
+                ml[ib]=ml[ib+1]
+                ml[ib+1]=temp
+                mtf=False
+        if mtf:
+            return str(ml[0])+"-"+str(ml[i])+"㎡"
+    return str(ml[0])+"-"+str(ml[i])+"㎡"
+
+
+        
+
+    
+
 def read_excel(filename,sheetname,ncol):
         dataa = []
         book = xlrd.open_workbook(filename)
@@ -185,21 +220,21 @@ def exlcelwrite(a, filename):
         c += 1
     writebook.save(filename)
             
-
-
     
 def rand():
     return str(random.randint(1000000000000000,9999999999999999)/10000000000000000)
 
 if __name__ == "__main__":
+    t=time.time()
     lists=["恒文星尚湾","昱龙家园"]
     fname=r"E:\S1一手房楼盘典型楼盘(1)(1).xls"
     fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
     lists1=read_excel(fname,'19S4',3)
     print(lists1)
-    sf=Soufang(lists)
+    sf=Soufang(lists1)
     sflist=sf.souf()
     print(sflist)
-   # exlcelwrite(sflist,fname2)
+    exlcelwrite(sflist,fname2)
     print(time.strftime("%H:%M:%S",time.localtime()))
+    print(time.time()-t)
     pass
