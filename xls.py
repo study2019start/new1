@@ -101,9 +101,11 @@ def read_excel3(a):
             dataa = [] #存储一行的数据
             if sheet.cell_value(i,1):
                 v1=sheet.cell_value(i,1)
-                v2=sheet.cell_value(i,5)
+                v2=sheet.cell_value(i,5)#设定楼面价
+              
                 dataa.append(v1)
                 dataa.append(v2)
+             
             else:
                 break
             dataa1.append(dataa)  #存储所有行的数据
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     p=r"F:\地价\任务"
     f1="准宗地调查表"
     bb=[]
-    r=r"F:\地价\任务\2.xls"
+    r=r"F:\地价\2020-1.xls"
     bianli(p,f1)
     bb=read_excel3(a)
     print(bb)

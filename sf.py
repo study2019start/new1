@@ -28,7 +28,6 @@ class Soufang(object):
        
         for lo in self.lou:
             resultlist.append(searchbegin(lo))
-            time.sleep(2)
         #for resf in resultlist:
         #    print(resf)
         return resultlist
@@ -91,7 +90,7 @@ def searchbegin(lo):
 
 
 def  readhtml(html1):
-    time.sleep(2)
+    time.sleep(1)
     ls=['','','','','','']
     sw=[]
     tt=True
