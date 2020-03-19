@@ -13,7 +13,7 @@ re2=r"(\d{4})年(\d{1,2})月(\d{1,2})日"
 re3=r".*([^\d{4}-]\d{2,3}-\d{1,4})+.*"
 re4=r".*[\u4e00-\u9fa5](\d{2,3}-\d{1,4})[㎡|平].*"
 re5=r".*面(\d{2,4}㎡)+.*"
-re6=r"<em>+([\w\W])+</em>"
+re6=r"<em>+[^1-9]*(\d{3,8})[\w\W]+</em>"
 re7=r"<span+.*>(.*)</span>"
 re8=r'href=\"(.*)\/\"'
 re9=r'<a.*>(.*)</a>'
@@ -78,6 +78,7 @@ def searchbegin(lo):
                             print(so33[0])
                             if str(so33[0]).find('二手')>=0:
                                 ls[0]='二手房'
+                                ls[5]=sslo
                                 return ls
                         sw=re.search(re9,str(ww)).group(1)
                         print(sw)
@@ -112,19 +113,18 @@ def  readhtml(html1):
         if soo:
             ls[5]=str(soo[0]).replace('<strong>','').replace('</strong>','').replace('</h1>','').replace('<h1>','')
         rs3=requests.get('https:'+w3,headers=he)
-        print(rs3.encoding)
+      
         html=rs3.text.encode('ISO-8859-1').decode('gb18030','ignore')
         soup=BeautifulSoup(html,"html.parser")
-        so1 = soup.select('div[class="main-info-price"] > em')
+        so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
         if so1:
-            print(str(so1[0]))
-            stf1=re.search(re6,str(so1[0])).group(0)
+            print(so1[0])
+            #stf1=re.search(re6,str(so1[0])).group(1)
+            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","")
             print(stf1)
-            stf=stf1.replace("<em>","").replace("</em>","").replace(" ","").replace("\n","").replace("\t","")
-            if stf.find("约")>=0:
-                stf=stf[stf.find("约")+1:len(stf)].replace('元/平方米','')
-            print(stf)
-            ls[0]=stf
+           
+           
+            ls[0]=stf1
         so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
         for i,soupr in enumerate(so):
             if str(soupr.string).find("装修状况")>-1:
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     fname=r"E:\S1一手房楼盘典型楼盘(1)(1).xls"
     fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
     lists1=read_excel(fname,'19S4',3)
-    print(lists1)
+   # print(lists1)
     sf=Soufang(lists1)
     sflist=sf.souf()
     print(sflist)

@@ -20,7 +20,7 @@ def get_elems(brow,aa,x,time=30):
     return elements[x]
 
 
-def get_elemsa(brow,aa,time=30):
+def get_elemsa(brow,aa,time=30): #返回多个节点
     elements = WebDriverWait(brow,time).until(lambda x:x.find_elements(*aa))
     return elements
 
