@@ -38,6 +38,22 @@ class thred(threading.Thread):
             dataa.append(a)
         return dataa
 
+    def read_excelforce(self,filename,list1): #list1存放行号 指定匹配的列在list的第1位
+        dataa = []
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
+        ra = sheet.nrows
+ 
+        for aa in list1:
+            self.lie.append(sheet.cell_value(0,aa))
+        for i in range(1,ra):
+            a=[]
+            for s in list1:
+                v = sheet.cell_value(i,s)
+                a.append(v)
+            dataa.append(a)
+        return dataa
+
     def accessup(self,s,tablename,dbn):
         mm=access_model(dbn)
         l1=[]

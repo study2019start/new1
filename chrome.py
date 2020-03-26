@@ -11,7 +11,7 @@ from selenium.webdriver.support.select import Select
 from mysqlzongtable import xiaoqu_mysql_zong
 import json
 from xls import xlsread
-
+import configparser
 
 def get_elem(brow,aa,time=15):
     try:
@@ -39,7 +39,10 @@ def op1(v):
     chrome_options.add_argument('disable-infobars')
     driver = webdriver.Chrome(options = chrome_options)
     driver.get("http://218.242.60.234:8080/wsjcj/api/index.html")
-    get_elem(driver,('name','j_username')).send_keys("15692157086")
+    mi=configparser.ConfigParser()
+    mi.readfp(open('in.ini'))
+    key=mi.get('key','no')
+    get_elem(driver,('name','j_username')).send_keys(key)
     get_elem(driver,('name','j_password')).send_keys("111111")
     get_elem(driver,('xpath','//input[@value=\'登 录\']')).click()
     get_elems(driver,('xpath','//li[@class=\'menunotice\']'),4).click()
