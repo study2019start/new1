@@ -346,7 +346,7 @@ if __name__ == "__main__":
                     print("*** KeyboardInterrupt ***")
                     traceback.print_exc(file=sys.stdout)
                     sys.exit(1)
-                except BaseException as e:
+                except BaseException  as e:
                     print("*** Open failed: %s: %s" % (type(e).__name__, e))
                     traceback.print_exc(file=sys.stdout)
                     continue

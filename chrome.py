@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import time
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.select import Select
 from mysqlzongtable import xiaoqu_mysql_zong
@@ -17,8 +18,8 @@ def get_elem(brow,aa,time=15):
     try:
         element = WebDriverWait(brow,time).until(lambda x:x.find_element(*aa))
         return element
-    except BaseException:
-        print(BaseException)
+    except WebDriverException:
+        print(WebDriverException)
         return None
     
 
