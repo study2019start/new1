@@ -134,6 +134,7 @@ class base(object):
                     if listss:  #遍历数据列表的tr
                         for tr in listss:
                             #获取详情按钮 并点击
+                            time.sleep(2)
                             tdlist=self.get_elemsinxpath(tr,".//td/div")[count] #第17个div
                             self.get_eleminxpath(tdlist,'.//button').click()  #点开详细页
                             el_dialog=self.get_elem(self.dr,("class name","el-dialog"))
