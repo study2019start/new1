@@ -198,22 +198,24 @@ def gb(lid):
     for mm in maolist:
         if str(mm).isdigit():
             ml.append(int(mm))
-        else:
-            return ''
+
     print(ml)
     if len(ml)==1:
         return str(ml[0])+"㎡"
+    elif len(ml) ==0:
+        return ''
     i=len(ml)-1
-    for ia in range(0,i):
-        mtf=True
-        for ib in range(0,i-ia):
-            if ml[ib]>ml[ib+1]:
-                temp=ml[ib]
-                ml[ib]=ml[ib+1]
-                ml[ib+1]=temp
-                mtf=False
-        if mtf:
-            return str(ml[0])+"-"+str(ml[i])+"㎡"
+    ml.sort()
+    # for ia in range(0,i):
+    #     mtf=True
+    #     for ib in range(0,i-ia):
+    #         if ml[ib]>ml[ib+1]:
+    #             temp=ml[ib]
+    #             ml[ib]=ml[ib+1]
+    #             ml[ib+1]=temp
+    #             mtf=False
+    #     if mtf:
+    #         return str(ml[0])+"-"+str(ml[i])+"㎡"
     return str(ml[0])+"-"+str(ml[i])+"㎡"
         
 
