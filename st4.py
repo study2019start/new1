@@ -99,6 +99,8 @@ def connect(datau):
         #开始填表
         #是否分户 是分户选择地址
             if data['isfenhu']: 
+                 #总报告编号
+                browser.find_element_by_id("fatherReportNO").send_keys(data['fatherReportNO'])
                 browser.execute_script( "var aEle=document.getElementById('householdYes');aEle.click(); ")
                 browser.execute_script( "var aEle=document.getElementsByTagName('*');  for(var i=0;i<aEle.length;i++){ if(aEle[i].getAttribute('name')=='assessAim')  {if(aEle[i].getAttribute('value')=="+data['assessAim']+") { aEle[i].click(); break;}  } } ")
                 browser.execute_script( "var aEle=document.getElementById('getObject');aEle.click(); ")
@@ -125,13 +127,13 @@ def connect(datau):
                 #browser.execute_script("hiddenObjDiv()" )#关闭
             # browser.find_element_by_id("householdYes").click()
             else:
+                #估价目的
                 browser.execute_script( "var aEle=document.getElementsByTagName('*');  for(var i=0;i<aEle.length;i++){ if(aEle[i].getAttribute('name')=='assessAim')  {if(aEle[i].getAttribute('value')=="+data['assessAim']+") { aEle[i].click(); break;}  } } ")
                 browser.execute_script( "var aEle=document.getElementById('householdNo');aEle.click(); ")
                 #browser.find_element_by_id("householdNo").click()
             #项目名称
             browser.find_element_by_id("projectName").send_keys(data['projectName'])
-            #总报告编号
-            browser.find_element_by_id("fatherReportNO").send_keys(data['fatherReportNO'])
+           
             #报告编号
             browser.find_element_by_id("reportNO").send_keys(data['reportNO'])
             #委托方
@@ -140,7 +142,7 @@ def connect(datau):
             browser.find_element_by_id("estimatorTwo").send_keys(data['estimatorTwo'])
             #主要审核人
             browser.find_element_by_id("auditMan").send_keys(data['auditMan'])
-            #估价目的
+            
             
 
             #browser.find_elements_by_xpath("//table[@id='aimname1']//#tr//td//input[@id='assessAim']")[2].click()
