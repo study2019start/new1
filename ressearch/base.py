@@ -14,6 +14,9 @@ from access import access_model
 import configparser
 import xlrd
 import xlwt
+import re
+
+re1=r"[\u4e00-\u9fa5]+(\d{4})[\u4e00-\u9fa5]*"
 
 class base(object):
     def __init__(self,ur):
@@ -189,6 +192,7 @@ class base(object):
     def firstfang(self,lists): #列表[开始时间，结束时间，交易状态，类型，多少页]
         resslutlist=[]
         now=datetime.datetime.now().strftime("%Y-%m-%d")
+        year=datetime.datetime.now().year-1
         fyear= datetime.datetime.strftime(datetime.datetime.now()+datetime.timedelta(days=-365),"%Y-%m-%d")
         print(now)
         print(fyear)
@@ -205,7 +209,10 @@ class base(object):
             xin=self.visibilityy(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li/ul/li/span[text()=\'新房成交\']'))#新房点击进入
             if xin:
                 #print(tudi.loaction)
-                for lststr in lists:
+                longs=len(lists)
+                lix=0
+                while lix < longs:
+                    sff=True
                     s=[-1,-1,-1]
                     ActionChains(self.dr).click(xin).perform()
                     while True:
@@ -232,93 +239,130 @@ class base(object):
                         #self.dr.execute_script(js)
                         #点击土地状态
                         loup=self.get_eleminxpath(form1,".//input[@placeholder=\'请输入搜索内容\']") 
-                        ActionChains(self.dr).click_and_hold(loup).release().perform()  #鼠标点击搜索框
-                        time.sleep(2)
-                        ActionChains(self.dr).send_keys(lststr[0]).perform() #模拟输入
+                        ActionChains(self.dr).click(loup).perform()  #鼠标点击搜索框
+
+                        ActionChains(self.dr).send_keys(lists[lix][0]).perform() #模拟输入
                         time.sleep(3)
-                        
                         kuang=self.get_elem(self.dr,("xpath","//div[@class=\'el-popover el-popper popversearch-cot popversearch-xinz\']/div/div[@class=\'el-table__body-wrapper is-scrolling-none\']"))
+                        while True:
+                            kuang=self.visibilityy(self.dr,("xpath","//div[@class=\'el-popover el-popper popversearch-cot popversearch-xinz\']/div/div[@class=\'el-table__body-wrapper is-scrolling-none\']"))
+                            if kuang:
+                                break
                         if str(kuang.text).find("暂无数据")>0:
                             resslutlist.append(s)
                             print(s) 
                             break
-
                         else:
+                            tempz=[]
                             trueindex=-1
                             tdli=self.get_eleminsxpath(kuang,'.//tr/td/div')
-                            lens=len(tdli)
+                            print(len(tdli))
+                            lens=int(len(tdli)/4)
                             for iid in range(0,lens):
                                 tempi=iid*4+2
                                 nameiid=str(tdli[tempi].text)
-                                print(nameiid)
-                                if nameiid.find('商业') > 0 or nameiid.find('办公') > 0:
+                                areaname=str(tdli[tempi-2].text)
+                                if areaname.find(lists[lix][2]) < 0 or ((nameiid.find('商业') > 0 or nameiid.find('办公') > 0 ) and nameiid.find(lists[lix][0])<0 ):
                                     pass
-                                else:
-                                    trueindex=tempi
+                                elif nameiid.find(lists[lix][0]) >=0:
+                                    trueindex = tempi
+                                    print(nameiid)
                                     break
-                            if trueindex>-1:
+                                else:
+                                    tempz.append(tempi)
+                            if trueindex==-1 and len(tempz)>0:
+                                for nam in tempz:
+                                    name=str(tdli[nam].text)
+                                    result=re.findall(re1,name)
+                                    if result :
+                                        if int(result[0]) < year :
+                                            break
+                                        else:
+                                            trueindex=nam
+                                            break
+                            if trueindex > -1:
                                 tdli[trueindex].click()
-                                time.sleep(2)  
+                                time.sleep(3)  
                                 self.get_elem(self.dr,('xpath','//span[@class=\'el-tag res-zhuzai el-tag--small\']')).click()
                                 #查询按钮
                                 self.get_elem(self.dr,("xpath","//button[@class=\'el-button el-button--primary el-button--small\']")).click()
                                 time.sleep(1)
                                 #if self.visibilityy(self.dr,('xpath',''))
                                 #判断是否数据列表出现
+                                timesc=time.time() #计时用 超过40秒重新查一次
                                 while True:
                                     if not self.visibilityy(self.dr,('class name','el-loading-mask'),2):
                                         break
-
-                                if not self.visibilityy(self.dr,('xpath','//div[@class=\'el-table__empty-block\']'),3):
-                                    loucjth=self.get_elem(self.dr,("xpath","//table[@class=\'el-table__header\']/thead/tr/th[6]"))
-                                    loucj=self.get_eleminxpath(loucjth,".//div")
-                                    #点击第一次成交楼板价 按成交楼板价降序排列
-                                    loucj.click()
-                                    #判断数据列表是否出现 出现再点击成交楼板价
-                                    while True:
-                                        if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
-                                            break
-                                    tablebody=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr'))
-                                    pagetotal=self.get_elem(self.dr,('xpath','//span[@class=\'el-pagination__total\']'))
-                                    inpagetotl=int(str(pagetotal.text).replace('共 ','').replace(' 条',''))
-                                    print(inpagetotl)
-                                    data1lit=[]
-                                    #搜索第一页 降序排列后的 前后2个均价差值不查过30%
-                                    trlen= len(tablebody)
-                                    print(trlen)
-                                    data1=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr/td/div'))
-                                    for i in range(0,trlen):
-                                        sf=5+12*i
-                                        data1lit.append(int(data1[sf].text))
-                                    data1litlne=len(data1lit)
-                                    s[0]=data1lit[0]
-                                    if data1litlne>2:
-                                        for ii in range(0,data1litlne-1):
-                                            if (data1lit[ii+1]-data1lit[ii])/data1lit[ii] < 0.3:
-                                                s[1]=data1lit[ii]
+                                    time1=time.time()
+                                    if time1-timesc > 40:
+                                        lix=lix-1
+                                        sff=False
+                                if sff:
+                                    if not self.visibilityy(self.dr,('xpath','//div[@class=\'el-table__empty-block\']'),3):
+                                        loucjth=self.get_elem(self.dr,("xpath","//table[@class=\'el-table__header\']/thead/tr/th[6]"))
+                                        loucj=self.get_eleminxpath(loucjth,".//div")
+                                        #点击第一次成交楼板价 按成交楼板价降序排列
+                                        loucj.click()
+                                        timesc=time.time()
+                                        #判断数据列表是否出现 出现再点击成交楼板价
+                                        while True:
+                                            time1=time.time()         #计时判断
+                                            if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
                                                 break
-                                    else:
-                                        s[1]=data1lit[0]   
-                                    #点击第二次成交楼板价 升序排列
-                                    while True:
-                                        loucjth2=self.get_elem(self.dr,("xpath","//table[@class=\'el-table__header\']/thead/tr/th[6]"))
-                                        if self.tobeclick(loucjth2,('xpath',".//div")):
-                                        #self.dr.execute_script("arguments[0].click();", loucj2)
-                                            self.dr.execute_script("var cj=document.getElementsByClassName(\"cell\");cj[5].click();")
-                                            break
-                                    while True:
-                                        if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
-                                            break
-                                    data2=self.get_elems(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr/td/div'),5)
-                                    s[2]=int(data2.text)
-                                    resslutlist.append(s)
+                                            if time1 -timesc>40:
+                                                sff=False
+                                                lix=lix-1
+                                                break
+                                        if sff:
+                                            tablebody=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr'))
+                                            pagetotal=self.get_elem(self.dr,('xpath','//span[@class=\'el-pagination__total\']'))
+                                            inpagetotl=int(str(pagetotal.text).replace('共 ','').replace(' 条',''))
+                                            print(inpagetotl)
+                                            data1lit=[]
+                                            #搜索第一页 降序排列后的 前后2个均价差值不查过30%
+                                            trlen= len(tablebody)
+                                            print(trlen)
+                                            data1=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr/td/div'))
+                                            for i in range(0,trlen):
+                                                sf=5+12*i
+                                                data1lit.append(int(data1[sf].text))
+                                            data1litlne=len(data1lit)
+                                            s[0]=data1lit[0]
+                                            if data1litlne>2:
+                                                for ii in range(0,data1litlne-1):
+                                                    if (data1lit[ii+1]-data1lit[ii])/data1lit[ii] < 0.3:
+                                                        s[1]=data1lit[ii]
+                                                        break
+                                            else:
+                                                s[1]=data1lit[0] 
+                                            #点击第二次成交楼板价 升序排列
+                                            while True:
+                                                loucjth2=self.get_elem(self.dr,("xpath","//table[@class=\'el-table__header\']/thead/tr/th[6]"))
+                                                if self.tobeclick(loucjth2,('xpath',".//div")):
+                                                #self.dr.execute_script("arguments[0].click();", loucj2)
+                                                    self.dr.execute_script("var cj=document.getElementsByClassName(\"cell\");cj[5].click();")
+                                                    break
+                                            timesc=time.time()
+                                            while True:
+                                                time1=time.time()
+                                                if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
+                                                    break
+                                                if time1-timesc >40:
+                                                    lix=lix-1
+                                                    sff=False
+                                                    break
+                                            if sff:
+                                                data2=self.get_elems(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr/td/div'),5)
+                                                s[2]=int(data2.text)
+                                                resslutlist.append(s)
 
+                                    else:
+                                        resslutlist.append(s)
                                 else:
                                     resslutlist.append(s)
-                            else:
-                                resslutlist.append(s)
                     else:
                         resslutlist.append(s)
+                    lix +=1
                     print(s) 
 
         return  resslutlist
@@ -411,7 +455,7 @@ class base(object):
         reasult=inser.insert(where,tablen)
         return reasult
 
-def read_excel(filename,sheetname,ncol):
+def read_excel(filename,sheetname,ncol,ncol2):
         dataa = []
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_name(sheetname) #book.sheet_by_name('sheet1')
@@ -422,8 +466,10 @@ def read_excel(filename,sheetname,ncol):
         for i in range(1,ra):
             s=[]
             v = sheet.cell_value(i,ncol)
+            v1=sheet.cell_value(i,ncol2)
             s.append(v)
             s.append(i) #序号
+            s.append(v1)
             dataa.append(s)
         return dataa
 
@@ -446,11 +492,14 @@ if __name__ == "__main__":
     search=base(url)
     #print(search)
     repath=r"e:\一手典型楼盘.xlsx"
-    readexcl=read_excel(repath,'Sheet1',3)
+    readexcl=read_excel(repath,'Sheet1',3,0)
     login1=search.logindd(no1)
     fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
     if login1:
+        times=time.time()
         resresponse=search.firstfang(readexcl)
+        t=(time.time()-times)/60
+        print(t)
         print(resresponse)
         exlcelwrite(resresponse,fname2)
         #search.tudisearch()
