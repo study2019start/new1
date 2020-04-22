@@ -1,5 +1,5 @@
 import requests
-from bs4 import *
+from bs4 import BeautifulSoup
 import random
 import re
 import xlrd
@@ -17,13 +17,11 @@ re4=r".*[\u4e00-\u9fa5](\d{2,3}-\d{1,4})[㎡|平].*"
 re5=r".*面(\d{2,4}㎡)+.*"
 re6=r"<em>+[^1-9]*(\d{3,8})[\w\W]+</em>"
 re7=r"<span+.*>(.*)</span>"
-re8=r'href=\"(.*\.fang\.com)\/\"'
+re8=r'href=\"(.*\.fang\.com|.*\.fang\.com\/\d{1,2})\/\"'
 re9=r'<a.*>(.*)</a>'
 re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
 
 
-def sde(lo):
-    print(lo[0])
 
 def runss(lo,qp): 
     
@@ -72,22 +70,21 @@ def searchbegin(lo):
                 so2=BeautifulSoup(html1,"html.parser")
                 ww3=so2.select('div[class="nl_con clearfix"] > ul >li>div>div>div>div[class="nlcd_name"]')
                 so33=so2.select('div[class="house_value clearfix"]>div[class="fl mr10"]')
+               
                 for ww in ww3:
-                    sww33=re.search(re7,str(ww))
-                    if sww33:
-                        sw=sww33.group(1)
-                        if sslo.find(sw) >=0 or sw.find(sslo)>=0:
-                            swref=re.findall(re8,str(ww))
-                            if swref:
-                                if swref[0].find("http")>-1:
-                                    ts=swref[0]
-                                else:
-                                    ts="https:"+swref[0]
-                                
-                                result22=requests.get(ts,headers=he)
-                                ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'))
-                                ls.append(lo[1])
-                                return ls
+                    sw=str(ww)
+                  
+                    #if sslo.find(sw) >=0 or sw.find(sslo)>=0:
+                    swref=re.findall(re8,sw)
+                    if swref:
+                        if swref[0].find("http")>-1:
+                            ts=swref[0]
+                        else:
+                            ts="https:"+swref[0]
+                        result22=requests.get(ts,headers=he)
+                        ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'))
+                        ls.append(lo[1])
+                        return ls
                     elif re.search(re9,str(ww)):
                         if so33:
                             if str(so33[0]).find('二手')>=0:
@@ -275,13 +272,13 @@ def rand():
 
 if __name__ == "__main__":
     t=time.time()
-    mul=Pool(7)
     #lists=["恒文星尚湾","昱龙家园"]
     fname=r"E:\一手典型楼盘.xlsx"
     fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    lists1=read_excel(fname,'Sheet1',3)
+    lists1=read_excel(fname,'Sheet3',3)
    # print(lists1)
     longlis=[]
+    mul=Pool(5)
     qq=Manager().Queue()
     for lsd in lists1:
         mul.apply_async(runss,(lsd,qq))

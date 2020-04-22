@@ -2,20 +2,23 @@ import pypyodbc
 import re 
 import threading
 import time
+import re
 
+
+re1=r"\d{4}-\d{1,2}-\d{1,2}"
 class access_model(object):
     def __init__(self,dbname):
         self.db1 = "Driver={Microsoft Access Driver (*.mdb,*.accdb)};DBQ="+str(dbname)
         self.re=r'(?P<value>(?=[\x21-\x7e]+)[^A-Za-z0-9])'
     def insert(self,wherelist,tablename):
         field = []
-        s = ()
+        s = []
         for k,v in wherelist.items():
             field.append(k)
-            if isinstance(v,int) or isinstance(v,float):
-                s=s+(str(v),)
+            if is_number(v):
+                s.append(v)
             else:
-                s = s+("'"+str(v)+"'",)
+                s.append("'"+str(v)+"'")
         dbb = pypyodbc.win_connect_mdb(self.db1)
         cur = dbb.cursor()
         st ="insert into %s  ( %s ) values  ( %s )" % (tablename,','.join(field),','.join(s))
@@ -25,16 +28,60 @@ class access_model(object):
         dbb.close()
         return req
 
-    def manyinsert(self,list1,list2,tablename):
-        s = ()
-        ss = ()
-        ll=""
-        for ff in list2:
-            for k,v in ff.items():
-                if isinstance(v,int) or isinstance(v,float):
-                    s=s+(str(v),)
+    def inserttusql(self,wherelist,tablename,whereseach):# 插入的字典列表，表名称，查询是否存在的字典列表
+        dbb = pypyodbc.win_connect_mdb(self.db1)
+        cur = dbb.cursor()
+        sqllist=[]
+        for wh,fi in enumerate(wherelist):
+            stw=''
+            for k,v in whereseach[fi].items():
+                s=[]
+                if is_number(v)  and ( k != 'diji'):
+                    s.append(v)
+                elif re.match(re1,v):
+                    s.append("#"+str(v)+"#")
                 else:
-                    s = s+("'"+str(v)+"'",)
+                    s.append("'"+str(v)+"'")
+                if stw=='':
+                    stw="where "+k + "=" +str(s[0])
+                else:
+                    stw=stw + " and " +k+"="+str(s[0])
+            x="select * from %s where dizhi= '%s'" %(tablename,stw)
+            cur.execute(x)
+            inf=cur.fetchall()
+            if not inf:
+                sqllist.append(wh)
+        for wherels in sqllist:
+            field = []
+            s = []
+            if '' not in wherels.values():
+                for k,v in wherels.items():
+                        field.append(k)
+                        if is_number(v)  and ( k != 'diji'):
+                            s.append(v)
+                        elif re.match(re1,v):
+                            s.append("#"+str(v)+"#")
+                        else:
+                            s.append("'"+str(v)+"'")
+                st ="insert into %s(%s) values  (%s)" % (tablename,','.join(field),','.join(s))
+                print(st)
+                req = cur.execute(st)
+                dbb.commit()
+        cur.close()
+        dbb.close()
+        
+
+    def manyinsert(self,list1,list2,tablename):
+
+        for ff in list2:
+            s = []
+            ss = ()
+            ll=""
+            for k,v in ff.items():
+                if is_number(v):
+                    s.append(str(v),)
+                else:
+                    s.append("'"+str(v)+"'",)
             ll="("+','.join(s)+")"
             ss=ss+(ll,)
         dbb = pypyodbc.win_connect_mdb(self.db1)
@@ -144,6 +191,22 @@ class access_model(object):
         cur.close()
         dbb.close()
         return req
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+ 
+    # try:
+    #     import unicodedata
+    #     unicodedata.numeric(s)
+    #     return True
+    # except (TypeError, ValueError):
+    #     pass
+ 
+    return False
 
 def replace1(match):
     value = str(match.group('value'))

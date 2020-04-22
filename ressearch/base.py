@@ -29,12 +29,7 @@ class base(object):
         exit_model=access_model(dbname)
         resultln=self.tudisearch(listno)
         if resultln:
-            for resul in resultln:
-                wherelist={}
-                wherelist['dizhi']=resul['dizhi']
-                result_nol=exit_model.muselect(wherelist,tablename)
-                if not len(result_nol)>1:
-                    exit_model.insert(resul,tablename)
+            exit_model.inserttusql(resultln,tablename)
                
 
 
@@ -61,7 +56,7 @@ class base(object):
 
         
 
-    def tudisearch(self,listno): #列表[开始时间，结束时间，交易状态，类型，多少页]
+    def tudisearch(self,listno): #列表[开始时间，结束时间，交易状态，类型]
         first=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[3]') )#一级市场
         second=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[4]') )#二级市场
         count=16
@@ -75,7 +70,7 @@ class base(object):
             tudi=self.visibilityy(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li/ul/li/span[text()=\'土地\']'))#土地项目点击进入
 
             if tudi:
-                #print(tudi.loaction)
+                #print(tudi.location)
                 ActionChains(self.dr).click(tudi).perform()
                 while True:
                     if self.visibilityy(self.dr,('xpath','//input[@placeholder=\'开始日期\']')):
@@ -162,34 +157,43 @@ class base(object):
                                 el_dialog=self.get_elem(self.dr,("class name","el-dialog"))
                                 if el_dialog:
                                     dicr={}
-                                    
+                                    if listno[3]== '工业':
+                                        dicr['wu']="五通一平"
+                                    else:
+                                        dicr['wu']="七通一平"
                                     #记录内容的列
                                     zilist=self.get_elemsinxpath(el_dialog,".//table[@class=\'market-detail-table\']/tr/td")
                                     dicr['dizhi']=self.get_eleminxpath(zilist[4],'.//span').text
                                     dicr['sizhi']=self.get_eleminxpath(zilist[5],'.//span').text
                                     dicr['leix']=self.get_eleminxpath(zilist[6],'.//span').text
                                     dicr['rj']=str(self.get_eleminxpath(zilist[10],'.//span').text).replace('%','')
-                                    dicr['time']=self.get_eleminxpath(zilist[20],'.//span').text
+                                    dicr['ctime']=self.get_eleminxpath(zilist[20],'.//span').text
                                     dicr['dijia']=str(self.get_eleminxpath(zilist[17],'.//span').text).replace('(元/m²)','')
-                                    dicr['lx']=dicr['leix']
                                     #把字典数据放入listap列表
-                                    listap.append(dicr)
+                                    if dicr['dizhi']!='' and dicr['sizhi']!='' and dicr['leix']!='' and  dicr['rj']!='' and dicr['ctime']!='' and dicr['dijia']!='':
+                                        dicr['lx']=dicr['leix']
+                                        listap.append(dicr)
                                     time.sleep(2)
                                     #关闭弹出框
                                     self.dr.execute_script("var i= document.getElementsByClassName(\"icon-close icon-location\"); i[0].click();")
 
                                 
                             print(listap)
-                        pagenext=self.get_elem(self.dr,('xpath','//ul[@class=\'el-pager\']/li[text()=\''+str(2) +'\']'))  #点击第二页
+                        pagenext=self.get_elem(self.dr,('xpath',"//ul[@class=\'el-pager\']/li[text()=\'"+str(2) +"\']"))  #点击第二页
                         if pagenext:
-                            pagenext.click()
-        time.sleep(5000)
+                            jss=" var f=document.getElementsByClassName('number'); for(var i=0;i<f.length;i++){ if(f[i].innerHTML=='2'){f[i].click();} }"
+                            self.dr.execute_script(jss)
+                            #pagenext.click()
+                        else:
+                            pass
+
+        
         return listap
         
 
 
 
-    def firstfang(self,lists): #列表[开始时间，结束时间，交易状态，类型，多少页]
+    def firstfang(self,lists): 
         resslutlist=[]
         now=datetime.datetime.now().strftime("%Y-%m-%d")
         year=datetime.datetime.now().year-1
@@ -297,6 +301,7 @@ class base(object):
                                     if time1-timesc > 40:
                                         lix=lix-1
                                         sff=False
+                                        break
                                 if sff:
                                     if not self.visibilityy(self.dr,('xpath','//div[@class=\'el-table__empty-block\']'),3):
                                         loucjth=self.get_elem(self.dr,("xpath","//table[@class=\'el-table__header\']/thead/tr/th[6]"))
@@ -309,7 +314,7 @@ class base(object):
                                             time1=time.time()         #计时判断
                                             if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
                                                 break
-                                            if time1 -timesc>40:
+                                            if time1 -timesc>30:
                                                 sff=False
                                                 lix=lix-1
                                                 break
@@ -347,7 +352,7 @@ class base(object):
                                                 time1=time.time()
                                                 if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
                                                     break
-                                                if time1-timesc >40:
+                                                if time1-timesc >30:
                                                     lix=lix-1
                                                     sff=False
                                                     break
@@ -451,8 +456,9 @@ class base(object):
 
     @staticmethod
     def insert1(databserul,tablen,where):
+
         inser=access_model(databserul)
-        reasult=inser.insert(where,tablen)
+        reasult=inser.inserttusql(where,tablen)
         return reasult
 
 def read_excel(filename,sheetname,ncol,ncol2):
@@ -490,21 +496,27 @@ if __name__ == "__main__":
     no1=mi.get('key','no')
     url=mi.get('key','res')
     search=base(url)
-    #print(search)
-    repath=r"e:\一手典型楼盘.xlsx"
-    readexcl=read_excel(repath,'Sheet1',3,0)
-    login1=search.logindd(no1)
-    fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    if login1:
-        times=time.time()
-        resresponse=search.firstfang(readexcl)
-        t=(time.time()-times)/60
-        print(t)
-        print(resresponse)
-        exlcelwrite(resresponse,fname2)
+    
+    databaur=r"F:\地价\test\test\conn\Database1.accdb"
+    #土地成交导入access
+    ls=['2020-01-01','2020-04-20','成交','工业']#列表[开始时间，结束时间，交易状态，类型]
+    search.insert_access(no1,ls,'bj_table',databaur)
+    
+    #以下是楼盘查询最高价最低价
+    # repath=r"e:\一手典型楼盘.xlsx"
+    # readexcl=read_excel(repath,'Sheet1',3,0)
+    # login1=search.logindd(no1)
+    # fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
+    # if login1:
+    #     times=time.time()
+    #     resresponse=search.firstfang(readexcl)
+    #     t=(time.time()-times)/60
+    #     print(t)
+    #     print(resresponse)
+    #     exlcelwrite(resresponse,fname2)
         #search.tudisearch()
         
-    databaur=r"F:\地价\test\test\conn\Database1.accdb"
+    
     # tname="bj_table"
     # tatol=[]
     # dd={}
