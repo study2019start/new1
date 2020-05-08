@@ -28,8 +28,13 @@ class base(object):
         self.logindd(nno)
         exit_model=access_model(dbname)
         resultln=self.tudisearch(listno)
+        wheres=[]
         if resultln:
-            exit_model.inserttusql(resultln,tablename)
+            for rsl in resultln:
+                d={}
+                d['dizhi']=rsl['dizhi']
+                wheres.append(d)
+            exit_model.inserttusql(resultln,tablename,wheres)
                
 
 
@@ -454,12 +459,7 @@ class base(object):
         reasult=search.muselect(where,tablen)
         return reasult
 
-    @staticmethod
-    def insert1(databserul,tablen,where):
-
-        inser=access_model(databserul)
-        reasult=inser.inserttusql(where,tablen)
-        return reasult
+   
 
 def read_excel(filename,sheetname,ncol,ncol2):
         dataa = []

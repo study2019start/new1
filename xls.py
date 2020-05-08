@@ -91,7 +91,7 @@ def read_excel2(filename):
     return dataa
 
 
-def read_excel3(a):
+def read_excel3(a):  # 地价数据抽取
     dataa1 = []
     for aa in a:# 遍历xls文件路径
         book = xlrd.open_workbook(aa)

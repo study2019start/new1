@@ -6,7 +6,9 @@ import xlrd
 import xlwt
 import time
 from multiprocessing import Process,Queue,Lock,Pool,Manager
- 
+import xlwings as xlw
+import pandas as pd
+import os
 
 he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
 head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
@@ -70,10 +72,8 @@ def searchbegin(lo):
                 so2=BeautifulSoup(html1,"html.parser")
                 ww3=so2.select('div[class="nl_con clearfix"] > ul >li>div>div>div>div[class="nlcd_name"]')
                 so33=so2.select('div[class="house_value clearfix"]>div[class="fl mr10"]')
-               
                 for ww in ww3:
                     sw=str(ww)
-                  
                     #if sslo.find(sw) >=0 or sw.find(sslo)>=0:
                     swref=re.findall(re8,sw)
                     if swref:
@@ -127,7 +127,6 @@ def  readhtml(html1):
             if stw:
                 stwre=re.search(re5,stw)
                 if stwre:
-                    
                     sw.append(stwre.group(1))
         if sw:
             ls[4]=','.join(sw)
@@ -141,7 +140,7 @@ def  readhtml(html1):
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
         if so1:
             #stf1=re.search(re6,str(so1[0])).group(1)
-            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","")
+            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace("</>","").replace("\n","")
            
            
             ls[0]=stf1
@@ -217,8 +216,6 @@ def gb(lid):
     for mm in maolist:
         if str(mm).isdigit():
             ml.append(int(mm))
-
- 
     if len(ml)==1:
         return str(ml[0])+"㎡"
     elif len(ml) ==0:
@@ -265,17 +262,38 @@ def exlcelwrite(a, filename):
             sheet.write(c,index,d[index])
         c += 1
     writebook.save(filename)
-            
-    
+
+
+def xlwingwirte(a,filename,sheetname,rangestart='H2'):
+    df=pd.DataFrame(a,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
+    print(df)
+    findd=filename.rfind('.')
+    findd1=filename.rfind('\\')
+    st1=filename[findd:len(filename)] #后缀名
+    st2=filename[findd1:findd] #文件名
+    st3=filename[0:findd1] #文件所在目录
+    newfn=st2+str(time.strftime("%H%M%S",time.localtime()))+st1  #文件名加入时间
+    svpath=os.path.join(st3,newfn)
+    os.system("copy "+filename+"  " +svpath)
+    app=xlw.App(visible=True,add_book=False)    
+    wb=app.books.open(svpath,update_links=False)
+    sh=wb.sheets[sheetname]
+    sh.range(rangestart).value=df.values
+    wb.save()
+    wb.close()
+    app.quit()
+
+
 def rand():
     return str(random.randint(1000000000000000,9999999999999999)/10000000000000000)
 
 if __name__ == "__main__":
     t=time.time()
+    print(time.strftime("%H:%M:%S",time.localtime()))
     #lists=["恒文星尚湾","昱龙家园"]
     fname=r"E:\一手典型楼盘.xlsx"
-    fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    lists1=read_excel(fname,'Sheet3',3)
+    #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
+    lists1=read_excel(fname,'Sheet1',3)
    # print(lists1)
     longlis=[]
     mul=Pool(5)
@@ -292,6 +310,7 @@ if __name__ == "__main__":
         sflist.append(qq.get())
     print(sflist)
     sortlist=sflist.sort(key=lambda x: x[6])
-    exlcelwrite(sflist,fname2)
+    xlwingwirte(sflist,fname,'Sheet1')
+    #exlcelwrite(sflist,fname2)
     print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

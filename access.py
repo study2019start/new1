@@ -46,7 +46,7 @@ class access_model(object):
                     stw="where "+k + "=" +str(s[0])
                 else:
                     stw=stw + " and " +k+"="+str(s[0])
-            x="select * from %s where dizhi= '%s'" %(tablename,stw)
+            x="select * from %s  %s" %(tablename,stw)
             cur.execute(x)
             inf=cur.fetchall()
             if not inf:

@@ -1,5 +1,5 @@
 import pymysql
-import numpy as np
+
 #db = MySQLdb.connect( "localhost", "root", "111", "xiaoqu", charset='utf8' )
 
 class xiaoqu_mysql_lou(object):
