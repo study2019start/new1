@@ -266,7 +266,7 @@ def exlcelwrite(a, filename):
 
 def xlwingwirte(a,filename,sheetname,rangestart='H2'):
     df=pd.DataFrame(a,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
-    print(df)
+    #print(df)
     findd=filename.rfind('.')
     findd1=filename.rfind('\\')
     st1=filename[findd:len(filename)] #后缀名
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     lists1=read_excel(fname,'Sheet1',3)
    # print(lists1)
     longlis=[]
-    mul=Pool(5)
+    mul=Pool(6)
     qq=Manager().Queue()
     for lsd in lists1:
         mul.apply_async(runss,(lsd,qq))

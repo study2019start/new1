@@ -78,7 +78,7 @@ def read_excel(filename):
     dataa.append(v8)
     return dataa  #读取指定单元格的数据
 
-def read_excel2(filename):
+def read_excel2(filename): #获取新 旧名称
     dataa = []
     book = xlrd.open_workbook(filename)
     sheet = book.sheet_by_index(0) #book.sheet_by_name('sheet1')
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     p=r"F:\地价\任务"
     f1="准宗地调查表"
     bb=[]
-    r=r"F:\地价\2020-1.xls"
+    r=r"F:\地价\2020-2.xls"
     bianli(p,f1)
     bb=read_excel3(a)
     print(bb)

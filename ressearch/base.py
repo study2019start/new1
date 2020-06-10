@@ -150,49 +150,54 @@ class base(object):
                         while True:
                             if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),15):
                                 break
+                        for mlk in range(1,3):
+                            listss=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr'),30)
 
-                        listss=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr'),30)
+                            if listss:  #遍历数据列表的tr
+                                for tr in listss:
+                                    #获取详情按钮 并点击
+                                    time.sleep(1)
+                                    while True:
+                                        if not self.visibilityy(self.dr,('class name','el-loading-mask'),3):
+                                            break
+                                    tdlist=self.get_elemsinxpath(tr,".//td/div")[count] #第17个div
+                                    buttonn=self.get_eleminxpath(tdlist,'.//button/span')
+                                    self.dr.execute_script("arguments[0].scrollIntoView();", buttonn) # 滚动条到对应位置
+                                    buttonn.click()  #点开详细页
+                                    el_dialog=self.get_elem(self.dr,("class name","el-dialog"))
+                                    if el_dialog:
+                                        dicr={}
+                                        if listno[3]== '工业':
+                                            dicr['wu']="五通一平"
+                                        else:
+                                            dicr['wu']="七通一平"
+                                        #记录内容的列
+                                        zilist=self.get_elemsinxpath(el_dialog,".//table[@class=\'market-detail-table\']/tr/td")
+                                        dicr['dizhi']=self.get_eleminxpath(zilist[4],'.//span').text
+                                        dicr['sizhi']=self.get_eleminxpath(zilist[5],'.//span').text
+                                        dicr['leix']=self.get_eleminxpath(zilist[6],'.//span').text
+                                        dicr['rj']=str(self.get_eleminxpath(zilist[10],'.//span').text).replace('%','')
+                                        dicr['ctime']=self.get_eleminxpath(zilist[20],'.//span').text
+                                        dicr['dijia']=str(self.get_eleminxpath(zilist[17],'.//span').text).replace('(元/m²)','')
+                                        #把字典数据放入listap列表
+                                        if dicr['dizhi']!='' and dicr['sizhi']!='' and dicr['leix']!='' and  dicr['rj']!='' and dicr['ctime']!='' and dicr['dijia']!='':
+                                            dicr['lx']=dicr['leix']
+                                            listap.append(dicr)
+                                        time.sleep(2)
+                                        #关闭弹出框
+                                        self.dr.execute_script("var i= document.getElementsByClassName(\"icon-close icon-location\"); i[0].click();")
 
-                        if listss:  #遍历数据列表的tr
-                            for tr in listss:
-                                #获取详情按钮 并点击
-                                time.sleep(2)
-                                tdlist=self.get_elemsinxpath(tr,".//td/div")[count] #第17个div
-                                self.get_eleminxpath(tdlist,'.//button').click()  #点开详细页
-                                el_dialog=self.get_elem(self.dr,("class name","el-dialog"))
-                                if el_dialog:
-                                    dicr={}
-                                    if listno[3]== '工业':
-                                        dicr['wu']="五通一平"
-                                    else:
-                                        dicr['wu']="七通一平"
-                                    #记录内容的列
-                                    zilist=self.get_elemsinxpath(el_dialog,".//table[@class=\'market-detail-table\']/tr/td")
-                                    dicr['dizhi']=self.get_eleminxpath(zilist[4],'.//span').text
-                                    dicr['sizhi']=self.get_eleminxpath(zilist[5],'.//span').text
-                                    dicr['leix']=self.get_eleminxpath(zilist[6],'.//span').text
-                                    dicr['rj']=str(self.get_eleminxpath(zilist[10],'.//span').text).replace('%','')
-                                    dicr['ctime']=self.get_eleminxpath(zilist[20],'.//span').text
-                                    dicr['dijia']=str(self.get_eleminxpath(zilist[17],'.//span').text).replace('(元/m²)','')
-                                    #把字典数据放入listap列表
-                                    if dicr['dizhi']!='' and dicr['sizhi']!='' and dicr['leix']!='' and  dicr['rj']!='' and dicr['ctime']!='' and dicr['dijia']!='':
-                                        dicr['lx']=dicr['leix']
-                                        listap.append(dicr)
-                                    time.sleep(2)
-                                    #关闭弹出框
-                                    self.dr.execute_script("var i= document.getElementsByClassName(\"icon-close icon-location\"); i[0].click();")
-
+                                    
                                 
-                            print(listap)
-                        pagenext=self.get_elem(self.dr,('xpath',"//ul[@class=\'el-pager\']/li[text()=\'"+str(2) +"\']"))  #点击第二页
-                        if pagenext:
-                            jss=" var f=document.getElementsByClassName('number'); for(var i=0;i<f.length;i++){ if(f[i].innerHTML=='2'){f[i].click();} }"
-                            self.dr.execute_script(jss)
-                            #pagenext.click()
-                        else:
-                            pass
+                            pagenext=self.get_elem(self.dr,('xpath',"//ul[@class=\'el-pager\']/li[text()=\'"+str(mlk+1) +"\']"))  #点击后页
+                            if pagenext:
+                                jss=" var f=document.getElementsByClassName('number'); for(var i=0;i<f.length;i++){ if(f[i].innerHTML=='2'){f[i].click();} }"
+                                self.dr.execute_script(jss)
+                                #pagenext.click()
+                            else:
+                                break
 
-        
+        print(listap)
         return listap
         
 
@@ -499,7 +504,7 @@ if __name__ == "__main__":
     
     databaur=r"F:\地价\test\test\conn\Database1.accdb"
     #土地成交导入access
-    ls=['2020-01-01','2020-04-20','成交','工业']#列表[开始时间，结束时间，交易状态，类型]
+    ls=['2020-01-01','2020-06-20','成交','住宅']#列表[开始时间，结束时间，交易状态，类型]
     search.insert_access(no1,ls,'bj_table',databaur)
     
     #以下是楼盘查询最高价最低价

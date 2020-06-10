@@ -32,20 +32,9 @@ class access_model(object):
         dbb = pypyodbc.win_connect_mdb(self.db1)
         cur = dbb.cursor()
         sqllist=[]
-        for wh,fi in enumerate(wherelist):
-            stw=''
-            for k,v in whereseach[fi].items():
-                s=[]
-                if is_number(v)  and ( k != 'diji'):
-                    s.append(v)
-                elif re.match(re1,v):
-                    s.append("#"+str(v)+"#")
-                else:
-                    s.append("'"+str(v)+"'")
-                if stw=='':
-                    stw="where "+k + "=" +str(s[0])
-                else:
-                    stw=stw + " and " +k+"="+str(s[0])
+        for wh in wherelist:
+
+            stw="dizhi ="+str(wh['dizhi'])
             x="select * from %s  %s" %(tablename,stw)
             cur.execute(x)
             inf=cur.fetchall()
