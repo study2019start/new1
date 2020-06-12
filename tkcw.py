@@ -10,9 +10,10 @@ root.title('My Window')
 root.geometry('450x160') 
 
 path=StringVar()
-Label(root, text='选择文件', font=('宋体', 15), width=10, height=4).grid(row=0,column=0)
+Label(root, text='选择文件:', font=('宋体', 15), width=10, height=4).grid(row=0,column=0)
 en=Entry(root,width=30,textvariable=path)
 en.grid(row=0,column=1)
+Label(root, text='', font=('宋体', 2), width=5, height=4).grid(row=0,column=2)
 en['state'] = 'readonly'
 
 
@@ -34,6 +35,7 @@ def update1():
         showinfo(title="提示", message="出错")
 
 
-Button(root,text="选择文件",command=choose,font=('宋体', 13,'bold')).grid(row=0,column=2)
+Button(root,text="选择",command=choose,font=('宋体', 13,'bold')).grid(row=0,column=3)
 Button(root,text="确定",command=update1,font=('宋体', 18)).grid(row=1,column=1)
+
 root.mainloop()
