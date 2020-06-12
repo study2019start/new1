@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "debugStdLib" : true,
-            "stopOnEntry": true,
+            "stopOnEntry": false,
         },
         {
             "name": "Python: Current File (Integrated Terminal)",

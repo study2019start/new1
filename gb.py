@@ -1,4 +1,4 @@
-
+from access import access_model as ac
 
 def gb(lis):
 
@@ -35,4 +35,6 @@ def merge(ls):
     return b
 if __name__ == "__main__":
     sp=[2,3,66,12,3,1,15,12,16,7,12,57]
-    print(gb(sp))
+    m=ac(r"F:\地价\test\test\conn\Database1.accdb")
+    p=m.muselect({'dizhi':"青浦区华新镇蒋家巷路东侧44-02地块"},'bj_table')
+    print(p)

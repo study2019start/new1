@@ -32,21 +32,35 @@ class access_model(object):
         dbb = pypyodbc.win_connect_mdb(self.db1)
         cur = dbb.cursor()
         sqllist=[]
-        for wh in wherelist:
-
-            stw="dizhi ="+str(wh['dizhi'])
-            x="select * from %s  %s" %(tablename,stw)
+        for ii,wh in enumerate(whereseach):
+            stw=""
+            lp=""
+            for k,v in wh.items():
+                if is_number(v) :
+                    lp=str(v)
+                elif re.match(re1,v):
+                    lp="#"+str(v)+"#"
+                else:
+                    lp="'"+str(v)+"'"
+                if stw == "":
+                    stw="where " + k + "=" +lp
+                else:
+                    stw= " and " + k+ "="+lp
+                
+             
+            x="select ID from %s  "+stw %(tablename)
             cur.execute(x)
             inf=cur.fetchall()
             if not inf:
-                sqllist.append(wh)
+                sqllist.append(wherelist[ii])
+        print(sqllist)
         for wherels in sqllist:
             field = []
             s = []
             if '' not in wherels.values():
                 for k,v in wherels.items():
                         field.append(k)
-                        if is_number(v)  and ( k != 'diji'):
+                        if is_number(v) :
                             s.append(v)
                         elif re.match(re1,v):
                             s.append("#"+str(v)+"#")
@@ -134,7 +148,7 @@ class access_model(object):
                     st=str(mu[v])
                     #if re.search(self.re,st):
                         #st=re.sub(self.re,replace1,st)
-                    mu = str(v)+"=["+st+"]"
+                    mu = str(v)+"='"+st.replace('\'','\'\'')+"'"
                 mulis = mulis+(mu,)
             alllis = alllis+(' and ').join(mulis)
         else:
