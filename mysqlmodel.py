@@ -4,8 +4,8 @@ from DBUtils.PooledDB import PooledDB
 #db = {'host':'localhost', 'user':'root', 'password':'111', 'db':'web', 'charset':'utf8'}
 
 class mysql_model(object):
-    def __init__(self,dataname):
-        self.db1 = PooledDB(pymysql,maxconnections=8,host='localhost',user='root',port=3306,passwd='111',db=dataname,use_unicode=True)
+    def __init__(self,dataname,host1="localhost"):
+        self.db1 = PooledDB(pymysql,maxconnections=8,host=host1,user='root',port=3306,passwd='111',db=dataname,use_unicode=True)
     
     async def insert(self,wherelist,tablename):
         field = []
@@ -95,12 +95,12 @@ class mysql_model(object):
         dbb.close()
         return req
 
-    def select(self,mu,tablename,selectlist):
+    def select(self,mu,tablename,selectlist,between=None):
         dbb=self.db1.connection()
         cur = dbb.cursor()
         mulis=()
         mure=()
-       
+        sp=""
         alllis="  where "
         sl=""
         spp="%s" 
@@ -109,15 +109,23 @@ class mysql_model(object):
         else:
             sl="*"
         if mu :
-            for k,v in mu.items():
-                mv = str(k)+" = "+spp
-                mulis = mulis+(mv,)
-                mure = mure+(v,)
-            alllis = alllis + (' and ').join(mulis)
+            for llmu in mu:
+                for k,v in llmu.items():
+                    mv = str(k)+" = "+spp
+                    mulis = mulis+(mv,)
+                    mure = mure+(v,)
+                alllis = alllis + (' and ').join(mulis)
         else:
             alllis=""
-        sqlt="select "+ sl + " from " +tablename+alllis
+       
+        if  between:
+            if alllis=="":
+                alllis="  where "
+            for kp,vp in between.items():
+                sp=" and "+kp+"  between  " +spp+ " and "+spp
+                mure=mure+(vp[0],vp[1])
 
+        sqlt="select "+ sl + " from " +tablename+alllis+sp
         req = cur.execute(sqlt,mure)
         info = cur.fetchmany(req)
         cur.close()
