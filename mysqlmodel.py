@@ -4,8 +4,8 @@ from DBUtils.PooledDB import PooledDB
 #db = {'host':'localhost', 'user':'root', 'password':'111', 'db':'web', 'charset':'utf8'}
 
 class mysql_model(object):
-    def __init__(self,dataname,host1="localhost"):
-        self.db1 = PooledDB(pymysql,maxconnections=8,host=host1,user='root',port=3306,passwd='111',db=dataname,use_unicode=True)
+    def __init__(self,dataname,us='root',pwd="111",host1="localhost",ch="utf-8"):
+        self.db1 = PooledDB(pymysql,maxconnections=8,host=host1,user=us,port=3306,passwd=pwd,db=dataname,charset=ch,use_unicode=True)
     
     async def insert(self,wherelist,tablename):
         field = []

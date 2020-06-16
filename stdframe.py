@@ -9,6 +9,7 @@ from multiprocessing import Process,Queue,Lock,Pool,Manager
 import xlwings as xlw
 import pandas as pd
 import os
+from excel import model_excel
 
 he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
 head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
@@ -310,7 +311,9 @@ if __name__ == "__main__":
         sflist.append(qq.get())
     print(sflist)
     sortlist=sflist.sort(key=lambda x: x[6])
-    xlwingwirte(sflist,fname,'Sheet1')
+    xlww=model_excel()
+    df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
+    xlww.xlwingwirte(df,fname,'Sheet1',True)
     #exlcelwrite(sflist,fname2)
     print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

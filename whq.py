@@ -6,21 +6,25 @@ import os
 import xlwings as xlw
 from dateutil.relativedelta import relativedelta
 import numpy as np
+from excel import model_excel
+from matplotlib import pyplot as plt 
+
 class he(object):
-    def __init__(self,searchlist,filename,host,database,tablename,wheredic=None):
+    def __init__(self,searchlist,filename,host,database,tablename,us,psw,wheredic=None):
         self.s=searchlist
         self.f=filename
         self.h=host
         self.d=database
         self.t=tablename
         self.w=wheredic
-
+        self.pw=psw
+        self.u=us
 
     def search(self):
         t1=datetime.now().strftime("%Y-%m-%d")
         t2=datetime.now()+relativedelta(years=-2)
         t3=t2.strftime("%Y-%m-%d")
-        smo=mysql_model(self.d,self.h)
+        smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
         p=pd.DataFrame(smo.select(self.w,self.t,self.s,{'fd10':[t3,t1]}),columns=['报告编号','地址','客户','完成日期','总价','估价人员'])
          
         return p
@@ -28,41 +32,75 @@ class he(object):
     def readexcel(self):
         df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='A:I')
         df[5]=df[5].apply(lambda x: repl(x)) 
-        print(df)
         return df
 
+    def readexcel2(self):
+        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='M:N') 
+        df.dropna(inplace=True)
+        df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
+        #df.sort_values(ascending=False,by=13,inplace=True)
+        df=df.groupby([13],as_index=False)
+        return df
 
     def model(self):
         df1=self.readexcel()
-        df2=self.search()
-        df2["地址"]=df2["地址"].apply(lambda x:repl(x))
-        df2["总价"]=df2["总价"]*10000
-        df2["完成日期"]=df2["完成日期"].apply(lambda x:x.strftime("%Y%m%d"))
-        df2["估计人员"]=df2["估价人员"].apply(lambda x : x.replace("?","旸"))
-        file2=datetime.now().strftime("%Y-%m-%d,%H-%M-%S")
-        f1=self.f.rfind(".")
-        f2=self.f.rfind("\\")
-        st1=self.f[f1:len(self.f)] #后缀名
-        st2=self.f[f2:f1] #文件名
-        st3=self.f[0:f2] #文件所在目录
-        fd2fullname=os.path.join(st3,file2+st1)
-        #df2.to_excel(fd2fullname)
-        df3=df1.drop_duplicates(subset=[2],keep='first')
-        df4=df2.drop_duplicates(subset=['客户'],keep='first')
-        df5=pd.merge(df3,df4,how='left',left_on=2,right_on='客户')
+        if df1.shap[0]>10 :
+            df2=self.search()
+            df2["地址"]=df2["地址"].apply(lambda x:repl(x))
+            df2["总价"]=df2["总价"]*10000
+            df2["完成日期"]=df2["完成日期"].apply(lambda x:x.strftime("%Y%m%d"))
+            df2["估价人员"]=df2["估价人员"].apply(lambda x:x.replace("殷?","殷旸"))
+            file2=datetime.now().strftime("%Y-%m-%d,%H-%M-%S")
+            f1=self.f.rfind(".")
+            f2=self.f.rfind("\\")
+            st1=self.f[f1:len(self.f)] #后缀名
+            #st2=self.f[f2:f1] #文件名
+            #st3=self.f[0:f2] #文件所在目录
+            fd2fullname=os.path.join(os.getcwd(),file2+st1)
+            #df2.to_excel(fd2fullname)
+            df2['总价']=df2['总价'].astype(int)
+            df3=df1.drop_duplicates(subset=[2],keep='first')  #删除重复客户
+            df4=df2.drop_duplicates(subset=['客户'],keep='first') #查询到的表删除重复客户
+            df4=df4[['报告编号','客户']]
+            df5=pd.merge(df3,df4,how='left',left_on=2,right_on='客户')
+            df7=df2[['报告编号','地址']]
+            df=pd.merge(df1,df7,how='left',left_on=5,right_on='地址')
+            df6=df5[[0,'报告编号']]
+            df=pd.merge(df,df6,how='left',on=0)
+            df['报告编号_x']=df.apply(lambda x: x['报告编号_x'] if x["报告编号_x"] is not np.nan else x['报告编号_y'],axis=1)
+            dft=pd.merge(df,df2,how='left',left_on='报告编号_x',right_on="报告编号")
+            print(dft)
+            sna=dft['报告编号_x'].isna().sum()
+            print(sna)
+            xlww=model_excel()
+            xlww.xlwingwirte(dft[['报告编号_x','完成日期','总价','估价人员']],self.f,'Sheet1',False,'K5')
+            return sna
+        else:
+            return -1
         
-        print(df5['报告编号'].isna().sum())
-        df=pd.merge(df1,df2,how='left',left_on=5,right_on='地址')
-        df6=df5[[0,'报告编号','完成日期','总价','估价人员']]
-        df=pd.merge(df,df6,how='left',on=0)
-        print(df)
-        df['报告编号_x']=df.apply(lambda x: x['报告编号_x'] if x["报告编号_x"] is not np.nan else x['报告编号_y'],axis=1)
-        print(df['报告编号_x'].isna().sum())
 
+    def model2(self):
+        ff1=self.readexcel2()
+        ff2=ff1[12].agg(np.sum)
+        print(ff2)
+        width =0.5
+        plt.rcParams['font.sans-serif'] = ['SimHei'] 
+        
+        ax=ff2.plot.bar(x=13,y=12,width = width,label ='收入')
+        plt.xticks(rotation=1)
+       
+        for x, y in enumerate(ff2[12]):
+            print(y)
+            plt.text(x=x-0.25, y=y+1200, s='%.2f'  %y)
+         
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.tight_layout()
+        plt.show()
 
-
+    
 def repl(fp):
-    ls=['徐汇','青浦','杨浦','黄浦','浦东新','虹口','金山','奉贤','闵行','崇明','长宁','嘉定','宝山','上海','区','室','市',"(A)","（A）","(B)","（B）","(C)","（C）"]
+    ls=['徐汇','青浦','杨浦','黄浦','浦东新','虹口','金山','奉贤','闵行','崇明','长宁','嘉定','宝山','上海','区','室','市',"(A)","（A）","(B)","（B）","(C)","（C）",'（复式）']
     for lp in ls:
         fp=fp.replace(lp,"")
     fp=fp.replace("_","-")
@@ -72,7 +110,7 @@ if __name__ == "__main__":
     filepath=r"F:\信衡--2020年第1季度.xls"
     where=[{"category":"G"}]
     slist=['fd1','fd3','fd7','fd10','fd20','fd26']
-    host='localhost'
+    host='192.168.1.3'
     database='im2006'
-    m=he(slist,filepath,host,database,"reports",where)
-    m.model()
+    m=he(slist,filepath,host,database,"reports","user","7940",where)
+    m.model2()
