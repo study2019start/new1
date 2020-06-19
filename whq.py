@@ -19,33 +19,34 @@ class he(object):
         self.w=wheredic
         self.pw=psw
         self.u=us
-
-    def search(self):
-        t1=datetime.now().strftime("%Y-%m-%d")
+        self.t1=datetime.now().strftime("%Y-%m-%d")
         t2=datetime.now()+relativedelta(years=-2)
-        t3=t2.strftime("%Y-%m-%d")
+        self.t3=t2.strftime("%Y-%m-%d")
+
+    def search(self,columnsl):
         smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
-        p=pd.DataFrame(smo.select(self.w,self.t,self.s,{'fd10':[t3,t1]}),columns=['报告编号','地址','客户','完成日期','总价','估价人员'])
+        p=pd.DataFrame(smo.select(self.w,self.t,self.s,{'fd10':[self.t3,self.t1]}),columns=columnsl)
          
         return p
 
     def readexcel(self):
         df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='A:I')
+        print(df)
         df[5]=df[5].apply(lambda x: repl(x)) 
         return df
 
     def readexcel2(self):
-        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='M:N') 
+        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='k:m')
         df.dropna(inplace=True)
         df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
         #df.sort_values(ascending=False,by=13,inplace=True)
-        df=df.groupby([13],as_index=False)
+        
         return df
 
     def model(self):
         df1=self.readexcel()
-        if df1.shap[0]>10 :
-            df2=self.search()
+        if df1.shape[0]>10 :
+            df2=self.search(['报告编号','地址','客户','完成日期','总价','估价人员'])
             df2["地址"]=df2["地址"].apply(lambda x:repl(x))
             df2["总价"]=df2["总价"]*10000
             df2["完成日期"]=df2["完成日期"].apply(lambda x:x.strftime("%Y%m%d"))
@@ -57,7 +58,7 @@ class he(object):
             #st2=self.f[f2:f1] #文件名
             #st3=self.f[0:f2] #文件所在目录
             fd2fullname=os.path.join(os.getcwd(),file2+st1)
-            #df2.to_excel(fd2fullname)
+            df2.to_excel(fd2fullname)
             df2['总价']=df2['总价'].astype(int)
             df3=df1.drop_duplicates(subset=[2],keep='first')  #删除重复客户
             df4=df2.drop_duplicates(subset=['客户'],keep='first') #查询到的表删除重复客户
@@ -69,9 +70,8 @@ class he(object):
             df=pd.merge(df,df6,how='left',on=0)
             df['报告编号_x']=df.apply(lambda x: x['报告编号_x'] if x["报告编号_x"] is not np.nan else x['报告编号_y'],axis=1)
             dft=pd.merge(df,df2,how='left',left_on='报告编号_x',right_on="报告编号")
-            print(dft)
+
             sna=dft['报告编号_x'].isna().sum()
-            print(sna)
             xlww=model_excel()
             xlww.xlwingwirte(dft[['报告编号_x','完成日期','总价','估价人员']],self.f,'Sheet1',False,'K5')
             return sna
@@ -81,20 +81,25 @@ class he(object):
 
     def model2(self):
         ff1=self.readexcel2()
-        ff2=ff1[12].agg(np.sum)
-        print(ff2)
+        ff2=self.search(['报告编号','估价人员'])
+        dftf=pd.merge(ff1,ff2,how='left',left_on=10,right_on='报告编号')
+        dftf['估价人员'].replace("殷?","殷旸",inplace=True)
+        dfff=dftf.groupby(['估价人员'],as_index=False)
+        ff2=dfff[12].agg(np.sum)
+        
+        xlww=model_excel()
+        xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'Sheet1',False,'N5')
         width =0.5
         plt.rcParams['font.sans-serif'] = ['SimHei'] 
-        
-        ax=ff2.plot.bar(x=13,y=12,width = width,label ='收入')
+        ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
         plt.xticks(rotation=1)
-       
+        mmax=ff2[12].max() // 50
         for x, y in enumerate(ff2[12]):
-            print(y)
-            plt.text(x=x-0.25, y=y+1200, s='%.2f'  %y)
-         
+            plt.text(x=x-0.15, y=y+mmax, s='%.2f'  %y)
+        
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
+        plt.gcf().set_size_inches(10, 5)
         plt.tight_layout()
         plt.show()
 
@@ -110,7 +115,8 @@ if __name__ == "__main__":
     filepath=r"F:\信衡--2020年第1季度.xls"
     where=[{"category":"G"}]
     slist=['fd1','fd3','fd7','fd10','fd20','fd26']
+    slist2=['fd1','fd26']
     host='192.168.1.3'
     database='im2006'
-    m=he(slist,filepath,host,database,"reports","user","7940",where)
+    m=he(slist2,filepath,host,database,"reports","user","7940",where)
     m.model2()
