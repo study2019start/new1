@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['pdf.py'],
+a = Analysis(['tk_shou.py'],
              pathex=['E:\\study'],
              binaries=[],
              datas=[],
@@ -21,7 +21,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='pdf',
+          name='tk_shou',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -34,4 +34,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='pdf')
+               name='tk_shou')

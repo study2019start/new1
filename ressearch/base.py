@@ -65,15 +65,12 @@ class base(object):
 
     def tudisearch(self,listno): #列表[开始时间，结束时间，交易状态，类型]
         first=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[3]') )#一级市场
-        second=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[4]') )#二级市场
+        #second=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[4]') )#二级市场
         count=16
         listap=[]#存放数据
         sdd=False
         if first:
-            print(first.location)
             ActionChains(self.dr).click(first).perform()
-            print(second.location)
-            time.sleep
             tudi=self.visibilityy(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li/ul/li/span[text()=\'土地\']'))#土地项目点击进入
 
             if tudi:
@@ -101,7 +98,7 @@ class base(object):
                     while True:
 
                         self.get_elemsinxpath(form1,".//input[@class=\'el-input__inner\']")[2].click()
-                        time.sleep(1)
+                        #time.sleep(1)
                         cj=self.visibilityy(self.dr,('xpath','//ul[@class=\'el-scrollbar__view el-select-dropdown__list\']/li/span[text()=\'成交\']')) #选择成交
                         ActionChains(self.dr).click(cj).perform()
                         d1=self.get_elems(self.dr,("xpath",'//div[@class=\'el-select res-search-input el-select--small\']'),0)
@@ -159,7 +156,7 @@ class base(object):
                                 print(len(listss))
                                 for tr in listss:
                                     #获取详情按钮 并点击
-                                    time.sleep(1)
+                                    #time.sleep(1)
                                     if lop==0:
                                         while True:
                                             if not self.visibilityy(self.dr,('class name','el-loading-mask'),3):
@@ -220,13 +217,11 @@ class base(object):
         year=datetime.datetime.now().year-1
         fyear= datetime.datetime.strftime(datetime.datetime.now()+datetime.timedelta(days=-365),"%Y-%m-%d")
         chonglai=0
-        first=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[3]') )#一级市场
+        #first=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[3]') )#一级市场
         second=self.get_elem(self.dr,('xpath','//ul[@class=\'el-menu-vertical menu-ul-l el-menu\']/li[4]') )#二级市场
         if second:
-            print(first.location)
+            
             ActionChains(self.dr).click(second).perform()
-            print(second.location)
-            time.sleep
             while True:
                 if not self.visibilityy(self.dr,('class name','el-loading-mask'),3):
                     break
@@ -278,7 +273,7 @@ class base(object):
 
                             ActionChains(self.dr).send_keys(lists[lix][0]).perform() #模拟输入
     
-                            time.sleep(5)
+                            time.sleep(2)
                             kuang=self.get_elem(self.dr,("xpath","//div[@class=\'el-popover el-popper popversearch-cot popversearch-xinz\']/div/div[@class=\'el-table__body-wrapper is-scrolling-none\']"))
                             while True:
                                 kuang=self.visibilityy(self.dr,("xpath","//div[@class=\'el-popover el-popper popversearch-cot popversearch-xinz\']/div/div[@class=\'el-table__body-wrapper is-scrolling-none\']"))
@@ -318,11 +313,11 @@ class base(object):
                                                 break
                                 if trueindex > -1:
                                     tdli[trueindex].click()
-                                    time.sleep(3)  
+                                    time.sleep(1)  
                                     self.get_elem(self.dr,('xpath','//span[@class=\'el-tag res-zhuzai el-tag--small\']')).click()
                                     #查询按钮
                                     self.get_elem(self.dr,("xpath","//button[@class=\'el-button el-button--primary el-button--small\']")).click()
-                                    time.sleep(1)
+                                     
                                     #if self.visibilityy(self.dr,('xpath',''))
                                     #判断是否数据列表出现
                                     timesc=time.time() #计时用 超过40秒重新查一次
@@ -358,7 +353,7 @@ class base(object):
                                                 data1lit=[]
                                                 #搜索第一页 降序排列后的 前后2个均价差值不查过30%
                                                 trlen= len(tablebody)
-                                                print(trlen)
+                                                
                                                 data1=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr/td/div'))
                                                 for i in range(0,trlen):
                                                     sf=5+12*i
@@ -557,7 +552,6 @@ if __name__ == "__main__":
     repath=r"e:\一手典型楼盘.xlsx"
     readexcl=read_excel(repath,'Sheet1',3,0)
     login1=search.logindd(no1)
-    #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
     if login1:
         times=time.time()
         resresponse=search.firstfang(readexcl)

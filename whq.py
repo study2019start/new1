@@ -7,6 +7,8 @@ import xlwings as xlw
 from dateutil.relativedelta import relativedelta
 import numpy as np
 from excel import model_excel
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt 
 
 class he(object):
@@ -30,13 +32,13 @@ class he(object):
         return p
 
     def readexcel(self):
-        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='A:I')
+        df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='A:I')
         print(df)
         df[5]=df[5].apply(lambda x: repl(x)) 
         return df
 
     def readexcel2(self):
-        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='k:m')
+        df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='k:m')
         df.dropna(inplace=True)
         df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
         #df.sort_values(ascending=False,by=13,inplace=True)
@@ -53,7 +55,7 @@ class he(object):
             df2["估价人员"]=df2["估价人员"].apply(lambda x:x.replace("殷?","殷旸"))
             file2=datetime.now().strftime("%Y-%m-%d,%H-%M-%S")
             f1=self.f.rfind(".")
-            f2=self.f.rfind("\\")
+            #f2=self.f.rfind("\\")
             st1=self.f[f1:len(self.f)] #后缀名
             #st2=self.f[f2:f1] #文件名
             #st3=self.f[0:f2] #文件所在目录
@@ -86,11 +88,11 @@ class he(object):
         dftf['估价人员'].replace("殷?","殷旸",inplace=True)
         dfff=dftf.groupby(['估价人员'],as_index=False)
         ff2=dfff[12].agg(np.sum)
-        
         xlww=model_excel()
-        xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'Sheet1',False,'N5')
+        xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'结果',True,'A1')
         width =0.5
         plt.rcParams['font.sans-serif'] = ['SimHei'] 
+        xlww.xlwingwirte(ff2,self.f,'结果',True,'A1')
         ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
         plt.xticks(rotation=1)
         mmax=ff2[12].max() // 50
@@ -101,7 +103,9 @@ class he(object):
         ax.spines['top'].set_visible(False)
         plt.gcf().set_size_inches(10, 5)
         plt.tight_layout()
-        plt.show()
+        flijpg=datetime.now().strftime("%Y-%m-%d%H%M%S")+".jpg"
+        plt.savefig("图片/"+flijpg)
+        #plt.show()
 
     
 def repl(fp):
@@ -112,7 +116,7 @@ def repl(fp):
     return fp
 
 if __name__ == "__main__":
-    filepath=r"F:\信衡--2020年第1季度.xls"
+    filepath=r"F:\信衡--2020年第1季度 - 副本.xls"
     where=[{"category":"G"}]
     slist=['fd1','fd3','fd7','fd10','fd20','fd26']
     slist2=['fd1','fd26']
