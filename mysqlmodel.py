@@ -1,13 +1,24 @@
 import pymysql
 import json
+import pymssql
 from DBUtils.PooledDB import PooledDB
+
 #db = {'host':'localhost', 'user':'root', 'password':'111', 'db':'web', 'charset':'utf8'}
+class sql_server(object):
+    def __init__(self,dataname,us,pwd,host):
+        self.connect =pymssql.connect(host,us,pwd,dataname)
+
+
+
+
+
 
 class mysql_model(object):
     def __init__(self,dataname,us='root',pwd="111",host1="localhost",ch="utf-8"):
+        
         self.db1 = PooledDB(pymysql,maxconnections=8,host=host1,user=us,port=3306,passwd=pwd,db=dataname,charset=ch,use_unicode=True)
     
-    async def insert(self,wherelist,tablename):
+    async def insert(self,wherelist,tablename): #插入的字典 表名
         field = []
         value = []
         s = ()
@@ -26,7 +37,7 @@ class mysql_model(object):
         
         return req
 
-    def manyinsert(self,list1,list2,tablename):
+    def manyinsert(self,list1,list2,tablename): #插入字段列表   插入的值的值是列表  多个值一个列表  表名
         field = []
         s = ()
         s1 = "%s"
@@ -52,24 +63,25 @@ class mysql_model(object):
         value = []
         dbb=self.db1.connection()
         cur = dbb.cursor()
-        s = ()
-        s2=()
+        s = []
+        s2= []
         wherep=""
         s1 = "%s"
-
-        for k,v in whe[0].items():
-            s = s+(k+"="+s1,)
-        if searchwhere[0]:
-            wherep=" where "
-            for ki,vi in searchwhere[0].items():
-                s2=s2+(ki+"="+s1,)
-        for ii,rs in enumerate(whe):
-            value1=()
-            for ki,vi in rs.items():
-                value1=value1+(vi,)
-            for kii,vii in searchwhere[ii].items():
-                value1=value1+(vii,)
-            value.append(value1)
+        if whe :
+            for k,v in whe[0].items():
+                s.append(k+"="+s1)
+            if searchwhere[0]:
+                wherep=" where "
+                for ki,vi in searchwhere[0].items():
+                    s2.append(ki+"="+s1)
+            for ii,rs in enumerate(whe):
+                value1=()
+                for ki,vi in rs.items():
+                    value1=value1+(vi,)
+                if searchwhere[ii]:
+                    for kii,vii in searchwhere[ii].items():
+                        value1=value1+(vii,)
+                value.append(value1)
                  
 
         st ="update %s  set %s  " % (tablename,','.join(s))
@@ -83,6 +95,83 @@ class mysql_model(object):
         return req
 
 
+    def updateorinsertmany(self,whe,searchwhere,tablename):# 更新内容字典列表，指定的条件列表，表名
+        value = []
+        field=[]
+        dbb=self.db1.connection()
+        cur = dbb.cursor()
+        s = []
+        s2= []
+        shailist=[]
+        shailistwhere=[]
+        insertlist=[]
+        wherep=""
+        s1 = "%s"
+        for is1,s1 in enumerate(searchwhere):
+            valuel=[]
+            sv=[]
+            wheres=""
+            for k,v in s1.items():
+                wheres=" where "
+                valuel.append(v)
+                sv.append(k+"="+s1)
+            strsearch="select from %s  %s %s " %(tablename,wheres,'and'.join(sv))
+            rq=cur.exxcute(strsearch,valuel)
+            dbb.commit()
+            fp=cur.fetchmany(rq)
+            if fp:
+                shailist.append(whe[is1]) #为更新
+                shailistwhere.append(s1)
+            else:
+                insertlist.append(whe[is1])# 插入的值
+
+
+        if shailist :
+            for k,v in shailist[0].items():
+                s.append(k+"="+s1)
+            if shailistwhere[0]:
+                wherep=" where "
+                for ki,vi in searchwhere[0].items():
+                    s2.append(ki+"="+s1)
+            for ii,rs in enumerate(shailist):
+                value1=[]
+                for ki,vi in rs.items():
+                    value1=value1.append(vi)
+                if shailistwhere[ii]:
+                    for kii,vii in shailistwhere[ii].items():
+                        value1=value1.append(vii)
+                value.append(value1)
+                
+
+            st ="update %s  set %s  " % (tablename,','.join(s))
+            
+            st= st +wherep+" %s " % ("and".join(s2))
+
+            req = cur.executemany(st,value)
+            dbb.commit()
+        value=[]
+        s=[]
+        if insertlist:
+            for ip,minset in enumerate(insertlist):
+                for kk,vv in minset:
+                    if ip==0:
+                        field.append(kk)
+                        s.append(s1)
+                    templ=[]
+                    templ.append(vv)
+                value.append(templ)
+
+            st ="insert into %s  ( %s ) values " % (tablename,','.join(field))
+            try:
+                req1 = cur.executemany(st+"("+','.join(s)+")",value)
+                dbb.commit()
+            except Exception as e:
+
+                dbb.rollback()
+        cur.close()
+        dbb.close
+        return req
+
 
     def selectid(self,id,tablename):
         dbb=self.db1.connection()
@@ -95,7 +184,7 @@ class mysql_model(object):
         dbb.close()
         return req
 
-    def select(self,mu,tablename,selectlist,between=None):
+    def select(self,mu,tablename,selectlist,between=None): #条件 表名 查找的字段  时间范围
         dbb=self.db1.connection()
         cur = dbb.cursor()
         mulis=()
@@ -132,7 +221,7 @@ class mysql_model(object):
         dbb.close
         return info
 
-    def selectmul(self,mu,tablename,listt,searchlistt):
+    def selectmul(self,mu,tablename,listt,searchlistt):# in条件的字段 表名 in中的值
         dbb=self.db1.connection()
         cur = dbb.cursor()
         mv=""

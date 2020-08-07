@@ -10,7 +10,7 @@ import xlwings as xlw
 import pandas as pd
 import os
 from excel import model_excel
-
+ 
 he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
 head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
 re1=r"[\u4e00-\u9fa5]+"
@@ -24,30 +24,31 @@ re8=r'href=\"(.*\.fang\.com|.*\.fang\.com\/\d{1,2})\/\"'
 re9=r'<a.*>(.*)</a>'
 re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
 re11=r'>(\w\W)<'
+re12=r'.*([\u4e00-\u9fa5]\d+\.*\d*.*[\u4e00-\u9fa5]*\/*[\u4e00-\u9fa5]*).*'
 
 class firstsou(object):
-    def __init__(self,path):
+    def __init__(self,path,ncol,shname):
         self.fp=path
+        self.nc=ncol
+        self.sheetname=shname
 
     def run(self):
-        fname=self.fp
-        #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-        lists1=read_excel(fname,'Sheet1',3)
-    # print(lists1)
-        longlis=[]
+        lists1=read_excel(self.fp,self.sheetname,self.nc)
+        sflist=[]
         mul=Pool(6)
         qq=Manager().Queue()
         for lsd in lists1:
             mul.apply_async(runss,(lsd,qq))
         mul.close()
         mul.join()
-        sflist=[]
         while not qq.empty():
             sflist.append(qq.get())
-        sortlist=sflist.sort(key=lambda x: x[6])
+        sflist.sort(key=lambda x: x[6])
+        
         xlww=model_excel()
         df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
-        xlww.xlwingwirte(df,fname,'Sheet1',True)
+        
+        xlww.xlwingwirte(df,self.fp,self.sheetname,True)
 
 
 def runss(lo,qp): 
@@ -109,7 +110,7 @@ def searchbegin(lo):
                         result22=requests.get(ts,headers=he)
                         ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'))
                         ls.append(lo[1])
-                        return ls
+                        return ls 
                     elif re.search(re9,str(ww)):
                         if so33:
                             if str(so33[0]).find('二手')>=0:
@@ -165,10 +166,13 @@ def  readhtml(html1):
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
         if so1:
             #stf1=re.search(re6,str(so1[0])).group(1)
-            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","")
-           
-           
-            ls[0]=stf1
+            
+            res=re.search(re12,str(so1[0]))
+            if res:
+                ls[0]=res.group(1)
+            else:
+                stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
+                ls[0]=stf1
         so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
         for i,soupr in enumerate(so):
             if str(soupr.string).find("装修状况")>-1:
@@ -200,6 +204,8 @@ def  readhtml(html1):
                                 str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]+"加推"
                             else:
                                 str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]
+                        elif str1.find("加推")>-1:
+                            str2=str1
                 ls[1]=str2
         so=soup.select('div[class="main-item"] > div[class="main-table"] > div[class="table-part"] > table >tr >td')
         for sof in so:
@@ -267,6 +273,7 @@ def read_excel(filename,sheetname,ncol):
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_name(sheetname) #book.sheet_by_name('sheet1')
         ra = sheet.nrows
+        print(ra)
         #na= sheet.ncols 
         #for aa in range(0,na):
            # self.lie.append(sheet.cell_value(0,aa))
@@ -314,12 +321,12 @@ def rand():
 
 if __name__ == "__main__":
     t=time.time()
-    print(time.strftime("%H:%M:%S",time.localtime()))
+    #print(time.strftime("%H:%M:%S",time.localtime()))
     #lists=["恒文星尚湾","昱龙家园"]
-    fname=r"E:\一手典型楼盘.xlsx"
+    fname=r"E:\二季度一手楼盘.xlsx"
     #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    #lists1=read_excel(fname,'Sheet1',3)
-    lists1=[["禹洲雍锦府",1]]
+    lists1=read_excel(fname,'Sheet1',3)
+    #lists1=[["禹洲雍锦府",1]]
    # print(lists1)
     longlis=[]
     mul=Pool(6)
@@ -334,11 +341,12 @@ if __name__ == "__main__":
     sflist=[]
     while not qq.empty():
         sflist.append(qq.get())
-    print(sflist)
-    sortlist=sflist.sort(key=lambda x: x[6])
+    #print(sflist)
+    sflist.sort(key=lambda x: x[6])
     xlww=model_excel()
     df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
+     
     xlww.xlwingwirte(df,fname,'Sheet1',True)
     #exlcelwrite(sflist,fname2)
-    print(time.strftime("%H:%M:%S",time.localtime()))
+    #print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

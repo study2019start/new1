@@ -53,7 +53,7 @@ class access_model(object):
             inf=cur.fetchall()
             if not inf:
                 sqllist.append(wherelist[ii])
-        print(sqllist)
+        
         for wherels in sqllist:
             field = []
             s = []
@@ -67,7 +67,7 @@ class access_model(object):
                         else:
                             s.append("'"+str(v)+"'")
                 st ="insert into %s(%s) values  (%s)" % (tablename,','.join(field),','.join(s))
-                print(st)
+                
                 req = cur.execute(st)
                 dbb.commit()
         cur.close()
@@ -213,6 +213,6 @@ def is_number(s):
 
 def replace1(match):
     value = str(match.group('value'))
-    st='['
-    st1=']'
+    st='#'
+    st1='#'
     return st+value+st1

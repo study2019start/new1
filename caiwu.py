@@ -16,14 +16,15 @@ class update(object):
         redata=self.readexcel()
         listp1=[  x[self.wh[0]] for  x in redata ]
         resp=[]
-
-        df1=pd.DataFrame(redata,columns=['fd1','fd33','fd34','checkno','fd35','fd36'])
+        inlist=[]
+        inlist.append(listp1) #in 搜索 当中的数值
+        df1=pd.DataFrame(redata,columns=self.wh)
         # for flp in redata:
         #     pp=cn.select({self.wh[0]:flp[self.wh[0]]},"reports",self.wh)
         #     print(pp)
         #     resp.append(pp)
         flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
-        resp=cn.selectmul([self.wh[0]],'reports',[listp1],self.wh)
+        resp=cn.selectmul([self.wh[0]],'reports',inlist,self.wh)
         df2=pd.DataFrame(resp,columns=['fd1','fd33_2','fd34_2','ck_2','fd35_2','fd36_2'])
         df2.to_excel(flienew)
         df2.fillna({'fd33_2':0},inplace=True)
@@ -34,11 +35,15 @@ class update(object):
             df['fd33']=df['fd33']+df['fd33_2']
             df['fd34']=df['fd34']+df['fd34_2']
             df['checkno']=df['checkno']+df['ck_2']
-            resultr=df[self.wh].to_dict('records')
-            print(resultr)
-            searhf=[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
-            cn.update(resultr,searhf,'reports')
+            #resultr=df[self.wh].to_dict('records')
+            resultr2=df[self.wh[1:]].to_dict('records')
+             
+            searhf= df[self.wh[0]].to_dict('records')#[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
+            cn.update(resultr2,searhf,'reports')
+            return True
 
+        else:
+            return False
         #print(resultr)
 
 

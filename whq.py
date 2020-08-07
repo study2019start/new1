@@ -10,6 +10,7 @@ from excel import model_excel
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt 
+import re
 
 class he(object):
     def __init__(self,searchlist,filename,host,database,tablename,us,psw,wheredic=None):
@@ -22,7 +23,7 @@ class he(object):
         self.pw=psw
         self.u=us
         self.t1=datetime.now().strftime("%Y-%m-%d")
-        t2=datetime.now()+relativedelta(years=-2)
+        t2=datetime.now()+relativedelta(months=-15)
         self.t3=t2.strftime("%Y-%m-%d")
 
     def search(self,columnsl):
@@ -33,13 +34,18 @@ class he(object):
 
     def readexcel(self):
         df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='A:I')
-        print(df)
+        
         df[5]=df[5].apply(lambda x: repl(x)) 
         return df
 
     def readexcel2(self):
         df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='k:m')
         df.dropna(inplace=True)
+        npp=np.digitize(df[12].values,[0,10000000],right=True)
+        
+        #pricelist=[0,0.00022,0.0002]
+         
+        #df[12]=df[12].values*np.array(pricelist)[npp]
         df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
         #df.sort_values(ascending=False,by=13,inplace=True)
         
@@ -48,6 +54,7 @@ class he(object):
     def model(self):
         df1=self.readexcel()
         if df1.shape[0]>10 :
+            df1.drop(df1[df1[0].map(np.isnan)].index)
             df2=self.search(['报告编号','地址','客户','完成日期','总价','估价人员'])
             df2["地址"]=df2["地址"].apply(lambda x:repl(x))
             df2["总价"]=df2["总价"]*10000
@@ -62,20 +69,25 @@ class he(object):
             fd2fullname=os.path.join(os.getcwd(),file2+st1)
             df2.to_excel(fd2fullname)
             df2['总价']=df2['总价'].astype(int)
-            df3=df1.drop_duplicates(subset=[2],keep='first')  #删除重复客户
-            df4=df2.drop_duplicates(subset=['客户'],keep='first') #查询到的表删除重复客户
-            df4=df4[['报告编号','客户']]
-            df5=pd.merge(df3,df4,how='left',left_on=2,right_on='客户')
+            #df3=df1.drop_duplicates(subset=[2],keep='first')   #删除重复客户
+            
+            #df4=df2.drop_duplicates(subset=['客户'],keep='first') #查询到的表删除重复客户
+            #df4=df4[['报告编号','客户']]
+            #df5=pd.merge(df3,df4,how='left',left_on=2,right_on='客户')
+
             df7=df2[['报告编号','地址']]
             df=pd.merge(df1,df7,how='left',left_on=5,right_on='地址')
-            df6=df5[[0,'报告编号']]
-            df=pd.merge(df,df6,how='left',on=0)
-            df['报告编号_x']=df.apply(lambda x: x['报告编号_x'] if x["报告编号_x"] is not np.nan else x['报告编号_y'],axis=1)
-            dft=pd.merge(df,df2,how='left',left_on='报告编号_x',right_on="报告编号")
-
-            sna=dft['报告编号_x'].isna().sum()
+            
+            #df6=df5[[0,'报告编号']]
+            #df=pd.merge(df,df6,how='left',on=0,) 
+            #df['报告编号_x']=df.apply(lambda x: x['报告编号_x'] if x["报告编号_x"] is not np.nan else x['报告编号_y'],axis=1)
+            dft=pd.merge(df,df2,how='left',left_on='报告编号',right_on="报告编号")
+            dft.drop_duplicates(subset=[0],keep='first',inplace=True)
+            sna=dft['报告编号'].isna().sum()
+            print(sna)
             xlww=model_excel()
-            xlww.xlwingwirte(dft[['报告编号_x','完成日期','总价','估价人员']],self.f,'Sheet1',False,'K5')
+            xlww.xlwingwirte(dft[['报告编号','完成日期','总价','估价人员']],self.f,'Sheet1',False,'K5')
+            
             return sna
         else:
             return -1
@@ -91,32 +103,37 @@ class he(object):
         xlww=model_excel()
         xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'结果',True,'A1')
         width =0.5
-        plt.rcParams['font.sans-serif'] = ['SimHei'] 
+        #plt.rcParams['font.sans-serif'] = ['SimHei'] 
         xlww.xlwingwirte(ff2,self.f,'结果',True,'A1')
-        ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
-        plt.xticks(rotation=1)
-        mmax=ff2[12].max() // 50
-        for x, y in enumerate(ff2[12]):
-            plt.text(x=x-0.15, y=y+mmax, s='%.2f'  %y)
+        #ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
+       # plt.xticks(rotation=1)
+        #mmax=ff2[12].max() // 50
+       # for x, y in enumerate(ff2[12]):
+       #     plt.text(x=x-0.15, y=y+mmax, s='%.2f'  %y)
         
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        plt.gcf().set_size_inches(10, 5)
-        plt.tight_layout()
-        flijpg=datetime.now().strftime("%Y-%m-%d%H%M%S")+".jpg"
-        plt.savefig("图片/"+flijpg)
+        #ax.spines['right'].set_visible(False)
+        #ax.spines['top'].set_visible(False)
+       # plt.gcf().set_size_inches(10, 5)
+       # plt.tight_layout()
+       # flijpg=datetime.now().strftime("%Y-%m-%d%H%M%S")+".jpg"
+        #plt.savefig(os.getcwd()+"/图片/"+flijpg)
         #plt.show()
 
     
 def repl(fp):
-    ls=['徐汇','青浦','杨浦','黄浦','浦东新','虹口','金山','奉贤','闵行','崇明','长宁','嘉定','宝山','上海','区','室','市',"(A)","（A）","(B)","（B）","(C)","（C）",'（复式）']
+    ls=['徐汇','青浦','杨浦','黄浦','浦东新','虹口','金山','奉贤','闵行','崇明','长宁','嘉定','宝山','普陀','县','卢湾','松江','上海','区','室','市',' ','闸北','静安','城桥镇']
     for lp in ls:
-        fp=fp.replace(lp,"")
-    fp=fp.replace("_","-")
+        fp=str(fp).replace(lp,"")
+    fp=str(fp).replace("_","-")
+    fp=re.sub(r'\(.*\)','',fp)
+    fp=re.sub(r'\（.*\）','',fp)
+    fp=re.sub(r'\(.*\）','',fp)
+    fp=re.sub(r'\（.*\)','',fp)
+     
     return fp
 
 if __name__ == "__main__":
-    filepath=r"F:\信衡--2020年第1季度 - 副本.xls"
+    filepath=r"E:\信衡1 - 副本.xls"
     where=[{"category":"G"}]
     slist=['fd1','fd3','fd7','fd10','fd20','fd26']
     slist2=['fd1','fd26']
