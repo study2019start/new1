@@ -13,8 +13,10 @@ from matplotlib import pyplot as plt
 import re
 
 class he(object):
-    def __init__(self,searchlist,filename,host,database,tablename,us,psw,wheredic=None):
+    def __init__(self,searchlist,searchlist2,filename,host,database,tablename,us,psw,wheredic=None):
         self.s=searchlist
+        self.s2=searchlist2
+        self.ts=""
         self.f=filename
         self.h=host
         self.d=database
@@ -28,28 +30,44 @@ class he(object):
 
     def search(self,columnsl):
         smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
-        p=pd.DataFrame(smo.select(self.w,self.t,self.s,{'fd10':[self.t3,self.t1]}),columns=columnsl)
+        p=pd.DataFrame(smo.select(self.w,self.t,self.ts,{'fd10':[self.t3,self.t1]}),columns=columnsl)
          
         return p
 
+     
+    def readTorF(self):
+        df=pd.read_excel(self.f,hearder=None,sheet_name=0,skiprows=4,usecols="K:m")
+        
+        return (df.iloc[:,1].isna().sum()>50)
+          
     def readexcel(self):
-        df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='A:I')
+        df=pd.read_excel(self.f,header=None,sheet_name=0,skiprows=4,usecols='A:I')
         
         df[5]=df[5].apply(lambda x: repl(x)) 
         return df
 
     def readexcel2(self):
-        df=pd.read_excel(self.f,header=None,sheet_name = "Sheet1",skiprows=4,usecols='k:m')
+        df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='k:m')
         df.dropna(inplace=True)
+        print(df)
         npp=np.digitize(df[12].values,[0,10000000],right=True)
         
-        #pricelist=[0,0.00022,0.0002]
+        pricelist=[0,0.00022,0.0002]
          
-        #df[12]=df[12].values*np.array(pricelist)[npp]
-        df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
+        df[12]=df[12].values*np.array(pricelist)[npp]
+        #df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
         #df.sort_values(ascending=False,by=13,inplace=True)
         
         return df
+
+    def m(self):
+        if self.readTorF():
+            self.ts=self.s
+            self.model()
+        else:
+            self.ts=self.s2
+            self.model2()
+
 
     def model(self):
         df1=self.readexcel()
@@ -102,7 +120,7 @@ class he(object):
         ff2=dfff[12].agg(np.sum)
         xlww=model_excel()
         xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'结果',True,'A1')
-        width =0.5
+        #width =0.5
         #plt.rcParams['font.sans-serif'] = ['SimHei'] 
         xlww.xlwingwirte(ff2,self.f,'结果',True,'A1')
         #ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
@@ -139,5 +157,5 @@ if __name__ == "__main__":
     slist2=['fd1','fd26']
     host='192.168.1.3'
     database='im2006'
-    m=he(slist2,filepath,host,database,"reports","user","7940",where)
-    m.model2()
+    m=he(slist,slist2,filepath,host,database,"reports","user","7940",where)
+    m.m()

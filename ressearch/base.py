@@ -192,6 +192,7 @@ class base(object):
                                                 time.sleep(2)
                                                 #关闭弹出框
                                                 self.dr.execute_script("var i= document.getElementsByClassName(\"icon-close icon-location\"); i[0].click();")
+                                                time.sleep(1)
                                         lop=lop+1
                                     else:
                                         break
@@ -538,28 +539,29 @@ def exlcelwrite(df, filename,sheetname,rangestart='Q2'):
 if __name__ == "__main__":
 
     mi=configparser.ConfigParser()
-    mi.readfp(open('in.ini'))
+    mi.readfp(open('./ressearch/in.ini'))
     no1=mi.get('key','no')
     url=mi.get('key','res')
     search=base(url)
     
-    #databaur=r"F:\地价\test\test\conn\Database1.accdb"
+    databaur=r"F:\地价\test\test\conn\Database1.accdb"
     
-    #ls=['2020-01-01','2020-06-20','成交','住宅']#列表[开始时间，结束时间，交易状态，类型] #土地成交导入access
-    #search.insert_access(no1,ls,'bj_table',databaur)
+    ls=['2020-05-01','2020-08-20','成交','住宅']#列表[开始时间，结束时间，交易状态，类型] #土地成交导入access
+    search.insert_access(no1,ls,'bj_table',databaur)
     
-    
-    repath=r"e:\一手典型楼盘.xlsx"
-    readexcl=read_excel(repath,'Sheet1',3,0)
-    login1=search.logindd(no1)
-    if login1:
-        times=time.time()
-        resresponse=search.firstfang(readexcl)
-        dff=pd.DataFrame(resresponse,columns={"最高","中","最低"})
-        print(dff)
-        exlcelwrite(dff,repath,"Sheet1")
-        t=(time.time()-times)/60
-        print(t)
+    #################################################################
+
+    # repath=r"e:\一手典型楼盘.xlsx"
+    # readexcl=read_excel(repath,'Sheet1',3,0)
+    # login1=search.logindd(no1)
+    # if login1:
+    #     times=time.time()
+    #     resresponse=search.firstfang(readexcl)
+    #     dff=pd.DataFrame(resresponse,columns={"最高","中","最低"})
+    #     print(dff)
+    #     exlcelwrite(dff,repath,"Sheet1")
+    #     t=(time.time()-times)/60
+    #     print(t)
     
         
     

@@ -17,11 +17,12 @@ def screenshot():
 
 if __name__ == '__main__': 
     x = 1
-    while x < 10:
+    while True:
         screenshot()
 
         baidu = BaiduApi()
         sc =Sc()
+        
         text = baidu.picture('iamgGrab.png')
         print(text)
         sc.set_text(text)

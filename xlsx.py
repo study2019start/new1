@@ -6,17 +6,17 @@ import os
 import time
 
 
-def  print1(fd1,fd2,fd3,source,target,namelist,fen=30):
+def  print1(fd1,fd2,fd3,source,target,namelist,fen=30): #总表路径 保存路径 模板的路径  总表要复制的列  模板对应的列 名字的列 一张分表有多少人
     wb= load_workbook(fd1)
     
     sheets = wb['Sheet1']
     rows=sheets.max_row
    # print(rows)
-    tablerowscount=rows-2 #总户数
+    tablerowscount=rows-2         #总户数,起始为第三行时候
     sumfen=math.ceil(tablerowscount/fen)
     
     for i in range(0,sumfen):
-        m1=i*fen+3
+        m1=i*fen+3         #起始为第三行时候
         na1=str(sheets[namelist+str(m1)].value)
         if (i+1)*fen+2<=rows:
             m2=(i+1)*fen+2

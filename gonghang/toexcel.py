@@ -6,6 +6,10 @@ import uuid
 import socket
 import json
 import configparser
+import math
+import hashlib
+
+shname="shapp.housepledge.xinheng"
 
 def exlcelwrite(a, filename):
     book = xlwt.Workbook()            #创建excel对象
@@ -29,7 +33,32 @@ def getip():
     return myaddr+","+myname
 
 
-if __name__=="__main__":
+def file_rtow(filenamep,chunkr):
+    fsize=os.path.getsize(filenamep)
+    chunkcount=math.ceil(fsize/chunkr)
+    print(chunkcount)
+    i=0
+    filename=filenamep[0:filenamep.rfind(".")]+time.strftime("%Y%m%d%H%M%S")+filenamep[filenamep.rfind("."):]
+    with open(filenamep,'rb') as fr:
+        with open(filename,'wb') as fw:
+            while i<chunkcount:
+                fr.seek(i*chunkr)
+                m=fr.read(chunkr)
+                print(m)
+                fw.write(m)
+                i=i+1
+             
+         
+def getMD5(path):
+   
+    with open(path, 'rb') as fp:
+        data = fp.read()
+    file_md5= hashlib.md5(data).hexdigest().upper()
+    print(file_md5)     
+
+
+
+def to_excel():
     s =setline()
     s.seturl("/shlocal/housepledge/assessplate/query/applylist")#housepledge/assessplate/query/applylist
     s.setshappid("shapp.housepledge.xinheng")
@@ -55,5 +84,14 @@ if __name__=="__main__":
                 sf=ff[0]
                 ff[0]=time.strftime("%Y-%m-%d", time.localtime(int(sf/1000)))
                 laresult.append(ff)
+            exlcelwrite(laresult, time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))+".xls")
+
+
+if __name__=="__main__":
+   f="E:\\436.pdf"
+   r=512
+   getMD5(f)
+   #file_rtow(f,r)
+
             #print(laresult)
     #exlcelwrite(laresult, "xls//"+time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))+".xls")

@@ -43,12 +43,12 @@ class access_model(object):
                 else:
                     lp="'"+str(v)+"'"
                 if stw == "":
-                    stw="where " + k + "=" +lp
+                    stw="  where " + k + "=" +lp
                 else:
                     stw= " and " + k+ "="+lp
                 
              
-            x="select ID from %s  "+stw %(tablename)
+            x="select ID from "+tablename+stw 
             cur.execute(x)
             inf=cur.fetchall()
             if not inf:

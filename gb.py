@@ -36,7 +36,7 @@ def merge(ls):
 
 class SomeClass(object):
     some_var = 15
-    some_list = [5]
+    some_list = [3]
     another_list = [5]
     def __init__(self,x):
         self.some_var = x + 1
@@ -67,6 +67,7 @@ if __name__ == "__main__":
     sp1=spp(7)
     sp2=spp(77)
     print(sp1.another_list)
+    print(sp1.some_list)
     print(SomeClass.another_list)
     print(sp2.another_list)
     spp.spp2=17

@@ -4,9 +4,6 @@ import pymssql
 from DBUtils.PooledDB import PooledDB
 
 #db = {'host':'localhost', 'user':'root', 'password':'111', 'db':'web', 'charset':'utf8'}
-class sql_server(object):
-    def __init__(self,dataname,us,pwd,host):
-        self.connect =pymssql.connect(host,us,pwd,dataname)
 
 
 

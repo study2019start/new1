@@ -34,8 +34,8 @@ class model(object):
 
     def readandcheck(self):
         # try:
-        df=pd.read_excel(self.filep,header=0,sheet_name = 0,usecols='B:H')
-        #df1.fillna("无",inplace=True)
+        df=pd.read_excel(self.filep,header=0,sheet_name = 0,usecols='B:I')
+        df.fillna("",inplace=True)
         
         df.dropna(axis=0,how='all',inplace=True)
         dfp=df.copy()
@@ -54,7 +54,7 @@ class model(object):
             df.loc[:,"person"]=self.p
             df.fillna("",inplace=True)
             print(df)   
-            df.rename(columns={"区县":"district","坐落":"fd3","报价（万元）":"quoteprice","来源":"fd37","分支":"fd38","联系人":"fd39"},inplace=True)
+            df.rename(columns={"区县":"district","坐落":"fd3","报价（万元）":"quoteprice","来源":"fd37","分支":"fd38","联系人":"fd39","备注":"memo1"},inplace=True)
                 
                 
             return True,df
