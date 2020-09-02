@@ -166,7 +166,7 @@ class mysql_model(object):
 
                 dbb.rollback()
         cur.close()
-        dbb.close
+        dbb.close()
         return req
 
 

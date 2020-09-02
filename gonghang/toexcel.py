@@ -8,6 +8,8 @@ import json
 import configparser
 import math
 import hashlib
+import base64
+from mssql import sql_server
 
 shname="shapp.housepledge.xinheng"
 
@@ -50,21 +52,94 @@ def file_rtow(filenamep,chunkr):
              
          
 def getMD5(path):
-   
     with open(path, 'rb') as fp:
         data = fp.read()
     file_md5= hashlib.md5(data).hexdigest().upper()
     print(file_md5)     
 
+def bianli(path,find):
+    a=[]
+    if os.path.exists(path):
+        list1 = os.listdir(path) #列出文件夹下所有的目录与文件
+        for i in range(0,len(list1)):
+            path1 = os.path.join(path,list1[i])
+            if os.path.isfile(path1) and path1.find(find)>0:
+                    a.append(path1)
+                    
+    return a
 
 
-def to_excel():
+
+def upload(fpath,applyNo,empname): #applyNo 是List
+    
+    sql=sql_server("192.168.1.8","sa","ldpjwy","gjgl_xh","1433")
+    updata={}
+    chunkr=512
+    result=sql.select("dbo.bdgl",{"zbgh_in":applyNo},['zgjs','zbgh','zl','jzmj','fdc_dj','fczjz','zcs','szc','fwlx','ybgxmbh'])
+    if result:
+        for r1 in result:
+            t=time.strftime("%Y%m%d%H%M%S",time.localtime())+'000000'
+            fileuid=base64.b64encode(t.encode('utf-8'))
+            updata["corpId"]="ASS00113"
+            updata["emplName"]=empname
+            updata["applyNo"]=r1['zbgh']
+            updata['assessAddress']=r1['zl']
+            updata['assessArea']=r1['jzmj']
+            updata['assessUnitPrice']=r1['fdc_dj']
+            updata['assessTotalPrice']=r1['fczjz']
+            updata['totalFloor']=r1['zcs']
+            updata['floor']=r1['szc']
+            updata['orientation']='朝南'
+            updata['houseType']=r1['fwlx']
+            updata['schoolHouse']=0
+            updata['bronzeMedal']=0
+            updata['assessStatus']=7
+            updata['assessNo']=r1['ybgxmbh']
+            updata['fileUnifiedNo']=fileuid
+            updata['reportId']=r1['ybgxmbh']
+            s =setline()
+            s.seturl("/shlocal/housepledge/assessplate/save/assessment")#housepledge/assessplate/query/applylist
+            s.setshappid("shapp.housepledge.xinheng")
+            s.setmsg(json.dumps(updata))
+            getnameip = str(getip()).split(",")
+            s.setip(getnameip[0])
+            s.setname(getnameip[1])
+            ss = setaes(s)
+            uuid1=uuid.uuid1()
+            result1=ss.dopost(uuid1)
+            print(result1)
+            if result1:
+                if result1[0]=='0':
+                    fsize=os.path.getsize(fpath)
+                    chunkcount=math.ceil(fsize/chunkr)
+                    i=0
+                    with open(fpath,'rb') as fr: #读取文件开始上传报告
+                        while i<chunkcount:
+                            fr.seek(i*chunkr)
+                            m=base64.b64decode(fr.read(chunkr))
+                            i=i+1
+                            upl={}
+                            upl['corpId']="ASS00113"
+                            upl['empIName']=empname
+                            upl['fileName']=fpath[fpath.rfind("\\")+1:]
+                            upl['chunk']=i
+                            upl['chunks']=chunkcount
+                            upl['fileContent']=m
+                            upl['fileUnifiedNo']=fileuid
+
+                            s.setmsg(json.dumps(upl))
+                            uuid2=uuid.uuid1()
+                            r2=ss.dopost(uuid2)
+                            print(r2)
+
+
+def to_excel(t1,t2,name):
     s =setline()
     s.seturl("/shlocal/housepledge/assessplate/query/applylist")#housepledge/assessplate/query/applylist
     s.setshappid("shapp.housepledge.xinheng")
-    tim=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
+   # tim=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
    # s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"settleStatus\":\"1\"}")
-    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2019-09-01 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"7\"}")
+    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\""+name+"\",\"startDate\":\""+str(zhuanshijianchuo(t1))+"\",\"endDate\":\""+str(zhuanshijianchuo(t2))+"\",\"assessStatus\":\"7\"}")
     getnameip = str(getip()).split(",")
     s.setip(getnameip[0])
     s.setname(getnameip[1])

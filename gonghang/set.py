@@ -54,15 +54,17 @@ class setaes():
     def __init__(self,setl):
         self.s=setl
         mi=configparser.ConfigParser()
-        mi.readfp(open(r'./in.ini'))
+        mi.readfp(open(r'./gonghang/in.ini'))
         key1=mi.get('key','mi')
-        self.key=key1
+        self.s.setkey(key1)
+   
 
     def dopost(self,uuid):
         head= "<?xml version=\"1.0\" encoding=\"UTF-8\"?><HEADER><SHAPPID>%s</SHAPPID>" %self.s.getshappid() + "<ICBCHQAPPID>%s</ICBCHQAPPID>" %"0"+ "<REQUESTURI>%s</REQUESTURI>" %self.s.geturl()+ "<CLIENTIP>%s</CLIENTIP>" %self.s.getip()+ "<CLIENTHOSTNAME>%s</CLIENTHOSTNAME>" %self.s.getname()+ "<CLIENTUUID>%s</CLIENTUUID>"  %uuid+ "<PREV_UUID></PREV_UUID>"+ "<CLIENTTIMESTAMP>%s</CLIENTTIMESTAMP>"  %gettime()+ "<RETURNCODE>-1</RETURNCODE><RETURNMSG>UNKNOW</RETURNMSG></HEADER>"
         iv = "1111111111111111"
         key11= to16(self.s.getkey())
         sh=head+self.s.getmsg()
+        print(self.s.getkey())
         read = setaes.aes1encode(key11,head,iv)
         read2 = setaes.aes1encode(key11,self.s.getmsg(),iv)
         enhead = read.decode()
@@ -79,7 +81,6 @@ class setaes():
         if obj:
             de1 = decrypt1(to16(self.s.getkey()),obj.group(1),iv)
             de2 = decrypt1(to16(self.s.getkey()),obj.group(2),iv)
-            
             de11=de1.decode()
             de12=de2.decode()
             le1=len(de11)
@@ -119,7 +120,8 @@ class setaes():
         something=s1+something+s2
         cryp = AES.new(key,AES.MODE_CBC,IV.encode("utf8"))
         bs=16 
-        pad = lambda s: s + ((bs - len(s) % bs) * chr(bs - len(s) % bs)).encode('utf-8')
+        lls=bs - len(s) % bs
+        pad = lambda s: s + (lls * chr(lls)).encode('utf-8')
         so=something.encode("utf8")
         chiphertext = cryp.encrypt(pad(so))
         
@@ -170,17 +172,19 @@ def getip():
     myname=socket.getfqdn(socket.gethostname())
     myaddr=socket.gethostbyname(myname)
     return myaddr+","+myname
+
+
 def gettime():
     st = time.strftime("%Y%m%d-%H%M%S", time.localtime())
     time2 = str(time.time())+"00"
     ti =  "".join([time2[time2.find(".")+x]  for x in range(1,4)])
-    print(str(st)+"-"+str(ti))
+    #print(str(st)+"-"+str(ti))
     return str(st)+"-"+str(ti)
 
 def zhuanshijianchuo(stri1):
     time1 = time.strptime(stri1,"%Y-%m-%d %H:%M:%S")
     timea=int(time.mktime(time1)*1000)
-    print(timea)
+    #print(timea)
     return timea
 
 if __name__=="__main__":
@@ -189,7 +193,7 @@ if __name__=="__main__":
     s.setshappid("shapp.housepledge.xinheng")
     tim=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
    # s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"settleStatus\":\"1\"}")
-    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2019-09-01 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"7\"}")
+    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2020-08-01 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"7\"}")
     getnameip = str(getip()).split(",")
     s.setip(getnameip[0])
     s.setname(getnameip[1])

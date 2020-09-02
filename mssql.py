@@ -5,7 +5,23 @@ class sql_server(object):
     def __init__(self,host,us,pwd,dataname,port):
         self.connect =pymssql.connect(host=host,user=us,password=pwd,database=dataname,port=port,charset='utf8')
 
-    
+
+    def insetms(self,tablename,valuel,valuev): #表名 
+        cursor=self.connect.cursor()
+        s=r"%s"
+        sqlv=[]
+        valuee=()
+        if valuel and valuev:
+            sql = "insert into " + tablename +" ("+",".join(valuel)+") values("
+            for  vi in valuev:
+                valuee=valuee+(vi,)
+                sqlv.append(s)
+            sql=sql+",".join(sqlv)+")"
+            rs=cursor.execute(sql,valuev)
+            self.connect.commit()
+            cursor.close()
+            return rs
+
     def select(self,tablename,where,selectlist=None):  #表名   where的字典条件  要搜索的字段
         cursor=self.connect.cursor()
         sp1=""
@@ -31,6 +47,8 @@ class sql_server(object):
                     sp2l.append(k[:-3]+"<="+s)
                 elif k[-3:]=="_ne":
                     sp2l.append(k[:-3]+"<>"+s) 
+                elif k[-3:]=="_in":     #in 后面要跟列表list
+                    sp2l.append(k[:-3]+"in ("+",".join([s for _ in range(len(v))])+")")
                 else:
                     sp2l.append(k+"="+s)
             sp2=sp2+"and".join(sp2l)
@@ -42,6 +60,7 @@ class sql_server(object):
         desc = cursor.description  # 获取字段的描述，默认获取数据库字段名称，重新定义时通过AS关键重新命名即可
         r = [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]  # 列表表达式把数据组装起来
         #r=cursor.fetchall()
+        cursor.close()
         return r
 
 
