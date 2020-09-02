@@ -21,6 +21,7 @@ class sql_server(object):
             self.connect.commit()
             cursor.close()
             return rs
+    def updateorinsert(self,tablename,where,data):
 
     def select(self,tablename,where,selectlist=None):  #表名   where的字典条件  要搜索的字段
         cursor=self.connect.cursor()
