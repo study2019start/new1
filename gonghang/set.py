@@ -64,7 +64,7 @@ class setaes():
         iv = "1111111111111111"
         key11= to16(self.s.getkey())
         sh=head+self.s.getmsg()
-        print(self.s.getkey())
+        #print(self.s.getkey())
         read = setaes.aes1encode(key11,head,iv)
         read2 = setaes.aes1encode(key11,self.s.getmsg(),iv)
         enhead = read.decode()
@@ -119,9 +119,9 @@ class setaes():
         s2=str(ss.decode()).replace("=","")[0:14]
         something=s1+something+s2
         cryp = AES.new(key,AES.MODE_CBC,IV.encode("utf8"))
-        bs=16 
-        lls=bs - len(s) % bs
-        pad = lambda s: s + (lls * chr(lls)).encode('utf-8')
+
+
+        pad = lambda s: s + ((16 - len(s) % 16)* chr((16 - len(s) % 16))).encode('utf-8')
         so=something.encode("utf8")
         chiphertext = cryp.encrypt(pad(so))
         
@@ -193,7 +193,8 @@ if __name__=="__main__":
     s.setshappid("shapp.housepledge.xinheng")
     tim=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
    # s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"settleStatus\":\"1\"}")
-    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2020-08-01 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"7\"}")
+    #s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"startDate\":\""+str(zhuanshijianchuo('2020-09-03 00:00:00'))+"\",\"endDate\":\""+str(zhuanshijianchuo(tim))+"\",\"assessStatus\":\"7\"}")
+    s.setmsg("{\"corpId\":\"ASS00113\",\"emplName\":\"王海琼\",\"applyNo\":\"AID0000023110\",\"assessStatus\":\"7\"}")
     getnameip = str(getip()).split(",")
     s.setip(getnameip[0])
     s.setname(getnameip[1])

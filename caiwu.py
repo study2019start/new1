@@ -26,24 +26,32 @@ class update(object):
         flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
         resp=cn.selectmul([self.wh[0]],'reports',inlist,self.wh)
         df2=pd.DataFrame(resp,columns=['fd1','fd33_2','fd34_2','ck_2','fd35_2','fd36_2'])
-        df2.to_excel(flienew)
+        
         df2.fillna({'fd33_2':0},inplace=True)
-        df2['count']=df2['fd33_2'].apply(lambda x:  1 if x>0  else  0)
-        if df2['count'].sum() <3 :
-            df2.fillna("",inplace=True)
-            df=pd.merge(df1,df2,how='left',on='fd1')
-            df['fd33']=df['fd33']+df['fd33_2']
-            df['fd34']=df['fd34']+df['fd34_2']
-            df['checkno']=df['checkno']+df['ck_2']
-            #resultr=df[self.wh].to_dict('records')
-            resultr2=df[self.wh[1:]].to_dict('records')
-             
-            searhf= df[self.wh[0]].to_dict('records')#[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
-            cn.update(resultr2,searhf,'reports')
-            return True
+        df2.fillna({'ck_2':"-1"},inplace=True)
+        df3=df2.loc[df2["fd_33"]>0 | df2["ck_2"] !="-1"]
+        df3.to_excel(flienew)
+        flienew2=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
+        df2.to_excel(flienew2)
+        #df2['count']=df2['fd33_2'].apply(lambda x:  1 if x>0  else  0)
+        #if df2['count'].sum() <3 :
 
-        else:
-            return False
+        #df2.fillna("",inplace=True)
+        df=pd.merge(df1,df2,how='left',on='fd1')
+        df.drop(df[df2["fd_33"]>0 | df["ck_2"]!="-1"].index,inplace=True)
+        print(df.shape[0])
+        #df['fd33']=df['fd33']+df['fd33_2']
+        #df['fd34']=df['fd34']+df['fd34_2']
+        #df['checkno']=df['checkno']+df['ck_2']
+        #resultr=df[self.wh].to_dict('records')
+        resultr2=df[self.wh[1:]].to_dict('records')
+            
+        searhf= df[self.wh[0]].to_dict('records')#[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
+        cn.update(resultr2,searhf,'reports')
+        return True
+
+        #else:
+            #return False
         #print(resultr)
 
 
