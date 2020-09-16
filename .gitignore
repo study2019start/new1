@@ -10,3 +10,5 @@ requirements.txt
 /Scripts
 /图片
 /*.xls
+/yugu/xlsx/*
+/yugu/mu/*
