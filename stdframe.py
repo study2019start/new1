@@ -171,7 +171,11 @@ def  readhtml(html1):
             if res:
                 ls[0]=res.group(1)
             else:
-                stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
+                so1f=so1.fiand("em")
+                if so1f :
+                    stf1=so1f.string
+                else:
+                    stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
                 ls[0]=stf1
         so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
         for i,soupr in enumerate(so):

@@ -12,24 +12,26 @@ class update(object):
         self.lis=[]
 
     def conn(self):
-        cn=mysql_model(self.d)
+        cn=mysql_model(self.d,"user","7940","192.168.1.3",)
         redata=self.readexcel()
         listp1=[  x[self.wh[0]] for  x in redata ]
         resp=[]
         inlist=[]
         inlist.append(listp1) #in 搜索 当中的数值
         df1=pd.DataFrame(redata,columns=self.wh)
+        
         # for flp in redata:
         #     pp=cn.select({self.wh[0]:flp[self.wh[0]]},"reports",self.wh)
         #     print(pp)
         #     resp.append(pp)
         flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
+        print(inlist)
         resp=cn.selectmul([self.wh[0]],'reports',inlist,self.wh)
         df2=pd.DataFrame(resp,columns=['fd1','fd33_2','fd34_2','ck_2','fd35_2','fd36_2'])
         
-        df2.fillna({'fd33_2':0},inplace=True)
-        df2.fillna({'ck_2':"-1"},inplace=True)
-        df3=df2.loc[df2["fd_33"]>0 | df2["ck_2"] !="-1"]
+        df2['fd33_2'].fillna(0,inplace=True)
+        df2['ck_2'].fillna("-1",inplace=True)
+        df3=df2.loc[(df2["fd33_2"]>0 )| ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))]
         df3.to_excel(flienew)
         flienew2=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
         df2.to_excel(flienew2)
@@ -38,15 +40,19 @@ class update(object):
 
         #df2.fillna("",inplace=True)
         df=pd.merge(df1,df2,how='left',on='fd1')
-        df.drop(df[df2["fd_33"]>0 | df["ck_2"]!="-1"].index,inplace=True)
+        df.drop(df[(df2["fd33_2"]>0) | ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))].index,inplace=True)
         print(df.shape[0])
         #df['fd33']=df['fd33']+df['fd33_2']
         #df['fd34']=df['fd34']+df['fd34_2']
         #df['checkno']=df['checkno']+df['ck_2']
         #resultr=df[self.wh].to_dict('records')
         resultr2=df[self.wh[1:]].to_dict('records')
-            
-        searhf= df[self.wh[0]].to_dict('records')#[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
+        
+        
+        searhf1= df[[self.wh[0]]]
+        
+       
+        searhf=searhf1.to_dict('records')#[ {self.wh[0]:x[self.wh[0]]} for x in resultr]
         cn.update(resultr2,searhf,'reports')
         return True
 
@@ -92,7 +98,7 @@ class update(object):
 
 if __name__ == "__main__":
     t=time.time()
-    fileurl=r"E:\0610.xlsx"
+    fileurl=r"E:\王昱鹏0830.xlsx"
     dan="im2006"
     whl=['fd1','fd33','fd34','checkno','fd35','fd36']
     up=update(dan,fileurl,whl)

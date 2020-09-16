@@ -1,6 +1,5 @@
 import pymysql
 import json
-import pymssql
 from DBUtils.PooledDB import PooledDB
 
 #db = {'host':'localhost', 'user':'root', 'password':'111', 'db':'web', 'charset':'utf8'}
@@ -11,7 +10,7 @@ from DBUtils.PooledDB import PooledDB
 
 
 class mysql_model(object):
-    def __init__(self,dataname,us='root',pwd="111",host1="localhost",ch="utf-8"):
+    def __init__(self,dataname,us='root',pwd="111",host1="localhost",ch="utf8"):
         
         self.db1 = PooledDB(pymysql,maxconnections=8,host=host1,user=us,port=3306,passwd=pwd,db=dataname,charset=ch,use_unicode=True)
     
@@ -143,9 +142,12 @@ class mysql_model(object):
             st ="update %s  set %s  " % (tablename,','.join(s))
             
             st= st +wherep+" %s " % ("and".join(s2))
+            try:
+                req = cur.executemany(st,value)
+                dbb.commit()
+            except Exception as e:
 
-            req = cur.executemany(st,value)
-            dbb.commit()
+                dbb.rollback()
         value=[]
         s=[]
         if insertlist:

@@ -77,81 +77,83 @@ def upload(fpath,applyNo): #applyNo 是List
     sql=sql_server("192.168.1.8","sa","ldpjwy","gjgl_xh","1433")
     sql2=sql_server("192.168.1.8","sa","ldpjwy","icbc_api","1433")
     result2=sql2.select(["dbo.icbcapi_assessment"],{"applyNo_in":applyNo},None) #先去上传的查看是否上传过
+    result=sql.select(["dbo.bdgl"],{"zbgh_in":applyNo},['zgjs','zbgh','zl','jzmj','fdc_dj','fczjz','zcs','szc','fwlx','ybgxmbh'])
+
     mulupdata=[]
     fp=[]
-    inset=[]
-    if result2:
-        ls=[r["applyNo"] for r in result2]
-        for app in applyNo:
-            if app not in ls:
-                inset.append(app)
-        for rs2 in result2:
-            resull=sql.select("dbo.bdgl",{"zbgh":rs2["applyNo"]},['zgjs'])
-            if resull:
-                rs2["emplName"]=resull[0]['zgjs']
-            print(rs2)
-            mulupdata.append(rs2)
-            fp.append(os.path.join(fpath,rs2['applyNo']+".pdf"))
-    print(inset)
-    if inset:   
-        result=sql.select(["dbo.bdgl"],{"zbgh_in":inset},['zgjs','zbgh','zl','jzmj','fdc_dj','fczjz','zcs','szc','fwlx','ybgxmbh'])
-        del sql
-        if result:
-            for r1 in result:
-                if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh']:
-                    updata={}
-                    updata["corpId"]="ASS00113"
-                    updata["emplName"]=r1['zgjs']
-                    updata["applyNo"]=r1['zbgh']
-                    updata['assessAddress']=r1['zl']
-                    updata['assessArea']=float(r1['jzmj'])
-                    updata['assessUnitPrice']=int(r1['fdc_dj'])
-                    updata['assessTotalPrice']=int(r1['fczjz'])*10000
-                    updata['totalFloor']=int(r1['zcs']) if r1['zcs']  else 0
-                    updata['floor']=int(r1['szc']) if r1['szc']  else 0
-                    updata['orientation']='朝南'
-                    updata['houseType']=r1['fwlx']
-                    updata['schoolHouse']="0"
-                    updata['bronzeMedal']="0"
-                    updata['assessStatus']="6"
-                    updata['assessNo']=r1['ybgxmbh']
-                    #updata['fileUnifiedNo']=fileuid
-                    updata['remarks']=""
-                    mulupdata.append(updata)
-                    #ups=updata.copy()
-                    #ups.pop('emplName')
-                    #ups.pop('remarks')
-                    #ups['fileUnifiedNo']=fileuid
-                    
-                    fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
+    hasnum=[]
+    inset=[]  #insert1 表示要插入 update1表示更新
+    if result2 and result:
+        for lsv in result2 :
+            for ii,ls2v in enumerate(result):
+                if lsv["applyNo"]==ls2v["zbgh"]:
+                    if ls2v['zgjs'] and ls2v['zbgh'] and  ls2v['jzmj'] and ls2v['fdc_dj'] and ls2v['fczjz']   and ls2v['fwlx'] and ls2v['ybgxmbh']:
+                        lsv["emplName"]=ls2v["zgjs"]
+                        mulupdata.append(lsv)
+                        hasnum.append(ii)
+                        fp.append(os.path.join(fpath,lsv['applyNo']+".pdf"))
+                        inset.append("insert1")
+    del sql
+    del sql2
+    if result:
+        for ri,r1 in enumerate(result):
+            if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh'] and ri not in hasnum:
+                updata={}
+                updata["corpId"]="ASS00113"
+                updata["emplName"]=r1['zgjs']
+                updata["applyNo"]=r1['zbgh']
+                updata['assessAddress']=r1['zl']
+                updata['assessArea']=float(r1['jzmj'])
+                updata['assessUnitPrice']=int(r1['fdc_dj'])
+                updata['assessTotalPrice']=int(r1['fczjz'])*10000
+                updata['totalFloor']=int(r1['zcs']) if r1['zcs']  else 0
+                updata['floor']=int(r1['szc']) if r1['szc']  else 0
+                updata['orientation']='朝南'
+                updata['houseType']=r1['fwlx']
+                updata['schoolHouse']="0"
+                updata['bronzeMedal']="0"
+                updata['assessStatus']="6"
+                updata['assessNo']=r1['ybgxmbh']
+                #updata['fileUnifiedNo']=fileuid
+                updata['remarks']=""
+                mulupdata.append(updata)
+                #ups=updata.copy()
+                #ups.pop('emplName')
+                #ups.pop('remarks')
+                #ups['fileUnifiedNo']=fileuid
+                fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
+                inset.append("update1")
         print(mulupdata)
         print(fp)
+        print(inset)
         if mulupdata:
             mul=Pool(1)
             qq=Manager().Queue()
+            qq2=Manager().Queue()
             for ii,lsd in enumerate(mulupdata):
-                #mul.apply(,(lsd,fp[ii],qq,emp[ii]))
-                muldup(lsd,fp[ii],qq)
+                #mul.apply(muldup,(lsd,fp[ii],qq,emp[ii]))
+                muldup(lsd,fp[ii],qq,inset[ii],qq2)
             #mul.close()
             #mul.join()
            
 
             
-            #uptt(qq,fpath)
+            #uptt(qq,fpath,qq2)
             
  
-def uptt(qq,fpp):
+def uptt(qq,fpp,qq2):
     while not qq.empty():
         ls=qq.get()
+        ls2=qq2.get()
         fp=os.path.join(fpp,ls['applyNo']+".pdf")
-        muldup(ls,fp,qq)
-        time.sleep(30)
+        muldup(ls,fp,qq,ls2,qq2)
+        time.sleep(10)
     
 
     print("---------------完成-------------")
 
 
-def muldup(updata,fpath,que):
+def muldup(updata,fpath,que,insertup,que2):
     if 'reportId' in list(updata.keys()):
         updata.pop("reportId")
     
@@ -178,16 +180,13 @@ def muldup(updata,fpath,que):
         upl['chunks']=chunkcount
         while i<chunkcount:
             fr.seek(i*chunkr)
-            print(fpath)
-            m=base64.b64encode(fr.read(chunkr))
-            i=i+1           
+            m=base64.b64encode(fr.read(chunkr))    
             upl['chunk']=i
             upl['fileContent']=m.decode()
-            print(upl)
             s.setmsg(json.dumps(upl,ensure_ascii=False))
             uuid2=uuid.uuid1()
             r2=ss.dopost(uuid2)
-            print(r2[0])
+            print(r2)
             if r2[0]=='0' :
                 if i==0:
                     updata['fileUnifiedNo']=json.loads(r2[1])['rows'][0]["fileUnifiedNo"]
@@ -197,6 +196,7 @@ def muldup(updata,fpath,que):
             else:
                 print("----上传"+fpath+"失败-----")
                 raise Exception
+            i=i+1 
    
     
     s.seturl("/shlocal/housepledge/assessplate/save/assessment")#housepledge/assessplate/query/applylist
@@ -213,7 +213,7 @@ def muldup(updata,fpath,que):
             updata['reportId']=updata["assessNo"]
             updata['flag']="1"
             sql2=sql_server("192.168.1.8","sa","ldpjwy","icbc_api","1433")
-            sql2.updateorinsert("icbcapi_assessment",{"applyNo":updata["applyNo"]},updata,['applyNo'])
+            sql2.updateorinsert("icbcapi_assessment",{"applyNo":updata["applyNo"]},updata,['applyNo'],insertup)
             
 
                     
@@ -222,6 +222,7 @@ def muldup(updata,fpath,que):
     
     #except:
         #que.put(updata)
+        #que2.put(insertup)
 
 
 def to_excel(t1,t2,name):

@@ -23,92 +23,98 @@ class sql_server(object):
             return rs
 
 
-    def updateorinsert(self,tablename,where,data,selectt): #表名   where 字典条件 更新或插入的内容   查找的列  第一个要和后面searchlist对应   要匹配的列
+    def updateorinsert(self,tablename,where,data,selectt,insertorup): #表名   where 字典条件 更新或插入的内容   查找的列  第一个要和后面searchlist对应   要匹配的列      #插入或者更新
         cursor=self.connect.cursor()
-        up=[]
-        insert=[]
-        value=()
+        insert=False
+        update=False
         s=r"%s"
-        if selectt:
-            sp1=",".join(selectt)
-        else:
-            sp1="*"
-        sqlselect="select "+sp1+" from  "+tablename
-        if where :
-            sp2="   where  "
-            sp2l=[]
-            for k,v in where.items():
-                t=True
-                if k[-3:]=="_gt":
-                    sp2l.append(k[:-3]+">"+s)
-                elif k[-3:]=="_ge":
-                    sp2l.append(k[:-3]+">="+s)
-                elif k[-3:]=="_lt":
-                    sp2l.append(k[:-3]+"<"+s)
-                elif k[-3:]=="_le":
-                    sp2l.append(k[:-3]+"<="+s)
-                elif k[-3:]=="_ne":
-                    sp2l.append(k[:-3]+"<>"+s) 
-                elif k[-3:]=="_in":     #in 后面要跟列表list
-                    sp2l.append(k[:-3]+"  in ("+",".join([s for _ in range(len(v))])+")")
-                    t=False
-                else:
-                    sp2l.append(k+"="+s)
-                if t:
-                    value=value+(v,)
-                else:
-                    for ii in range(len(v)):
-                        value=value+(v[ii],)
-            sp2=sp2+"and".join(sp2l)
-        sp3=[sqlselect,sp2]
-        selectlist="".join(sp3)
-
-        cursor.execute(selectlist,value)
-        r=[ row[0] for row in cursor.fetchall()]  #以查询出来的第一个作为匹配
+        sp=None
         if where:
             sp=list(where.keys())[0]
 
             if sp.find("_")>=0:
                 sp=sp[:-3]
 
-            sw=[r[sp] for r in data]
-            for ip,si in enumerate(sw):
-                if  si not in r:
-                    insert.append(ip)
+        if insertorup:
+            if insertorup=="insert1":
+                insert=True
+                update=False
+            elif insertorup=="update1":
+                insert=False
+                update=True
+
+        else:   
+            if selectt:
+                sp1=",".join(selectt)
+            else:
+                sp1="*"
+            sqlselect="select "+sp1+" from  "+tablename
+            if where :
+                sp2="   where  "
+                sp2l=[]
+                for k,v in where.items():
+
+                    if k[-3:]=="_gt":
+                        sp2l.append(k[:-3]+">"+s)
+                    elif k[-3:]=="_ge":
+                        sp2l.append(k[:-3]+">="+s)
+                    elif k[-3:]=="_lt":
+                        sp2l.append(k[:-3]+"<"+s)
+                    elif k[-3:]=="_le":
+                        sp2l.append(k[:-3]+"<="+s)
+                    elif k[-3:]=="_ne":
+                        sp2l.append(k[:-3]+"<>"+s) 
+                   
+                    else:
+                        sp2l.append(k+"="+s)
+
+                    value=value+(v,)
+
+                sp2=sp2+"and".join(sp2l)
+            sp3=[sqlselect,sp2]
+            selectlist="".join(sp3)
+
+            cursor.execute(selectlist,value)
+            r=[ row[0] for row in cursor.fetchall()]  #以查询出来的第一个作为匹配
+
+            if sp:
+                sw=data[sp]
+                if sw ==r[0]:
+                    update=True
                 else:
-                    up.append(ip)
-            if insert:
-                for ins in insert:
-                    insql="insert into " +tablename
-                    if data:
-                        insql2="  values("
-                        inv1=[]
-                        inv2=[]
-                        inv3=[]
-                        for k,v in data[ins].items():
-                            inv1.append(k)
-                            inv2.append(s)
-                            inv3.append(v)
-                        insql3=insql+"("+",".join(inv1)+")"+insql2+",".join(inv2)+")"
-                        print(insql3)
-                        cursor.execute(insql3,tuple(inv3))
-                        self.connect.commit()
-            if up:
-                upsql="update "+ tablename +" set "
-                for upi in up:
-                    if data:
-                        upv1=[]
-                        upv2=[]
-                        for k,v in data[upi].items():
-                            upv1.append(k+"="+s)
-                            upv2.append(v)
-                        upsql=upsql+",".join(upv1)
-        
-                        upsql=upsql+"  where "  +sp +r"=%s"
-                        upv2.append(data[upi][sp])
-                        print(upsql)
-                        cursor.execute(upsql,tuple(upv2))
-                        self.connect.commit()
+                    insert=True
+
+                        
+        if insert:
+            insql="insert into " +tablename
+            if data:
+                insql2="  values("
+                inv1=[]
+                inv2=[]
+                inv3=[]
+                for k,v in data.items():
+                    inv1.append(k)
+                    inv2.append(s)
+                    inv3.append(v)
+                insql3=insql+"("+",".join(inv1)+")"+insql2+",".join(inv2)+")"
+                print(insql3)
+                cursor.execute(insql3,tuple(inv3))
+                self.connect.commit()
+        if update and sp:
+            upsql="update "+ tablename +" set "
+            if data:
+                upv1=[]
+                upv2=[]
+                for k,v in data.items():
+                    if k !=sp:
+                        upv1.append(k+"="+s)
+                        upv2.append(v)
+                upsql=upsql+",".join(upv1)
+                upsql=upsql+"  where "  +sp +r"=%s"
+                upv2.append(data[sp])
+                print(upsql)
+                cursor.execute(upsql,tuple(upv2))
+                self.connect.commit()
         cursor.close()
 
 
