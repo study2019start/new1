@@ -86,8 +86,8 @@ def replace(p):
 
 
 if __name__ == "__main__":
-    fp=r"F:\报价price.xlsx"
-    inlist=["district","fd3","quoteprice","fd37","fd38","fd39","quotedate","quotedate_b","person"]
+    fp=r"e:\报价price-1.xlsx"
+    inlist=["district","fd3","quoteprice","fd37","fd38","fd39","memo1","quotedate","quotedate_b","person"]
     d_n="im2006"
     table_n="price"
     h="localhost"

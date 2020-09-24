@@ -3,29 +3,74 @@ import time
 import datetime
 import os
 from mysqlmodel import mysql_model
-from  docx   import Document
+from  docx import Document
 import re
+from docx.oxml.ns import qn
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 re1="Y(\d{4})-\d{5}$"
+re2="Y\d{4}-(\d{5})$"
+class yugum():
+    def __init__(self):
+        pass
+    def do(self,pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
+        model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist)
 
 def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     readexcel_r=readexcel(pathx)
-     
+    ls2=['fd42_hx','fd42_lx','fd42_lc','fd42_td','fd42_y','fd42_jg']
     df=getlistl(dataname,us,pwd,host1,ch,mu,tablename,readexcel_r,searchlist)
-     
+    df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 else str(x)+"股份有限公司")
     df['fd38']=df['fd38'].apply(lambda x: str(x).replace("支行",""))
     df['fd1_year']=df['fd1'].apply(lambda x: re.findall(re1,x)[0])
+    df['fd1_2']=df['fd1'].apply(lambda x: re.findall(re2,x)[0])
     df['fd10_1']=df['fd10'].apply(lambda x :riq2(x))
     df['fd10_2']=df['fd10'].apply(lambda x:qzhuan(x))
     df['fd20_z']=df['fd20'].apply(lambda x :zhuandaxie(int(x*10000)))
-    print(df)
+    #df['fdzq']=df['fdzq'].apply(lambda x : str(x).split("，")[0])
+    df['landfeature']=df['landfeature'].apply(lambda x : '国有' if x =='' else x)
+    df['fd16']=df['fd16'].apply(lambda x : '出让' if x =='' else x)
+    
+    df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15']]
+    
+    df1['fh']=df1.apply(relfh,axis=1)
+    r1=df1.to_dict("records")
+    
+    print(r1)
+    #print(df)
+    del df
+    del df1
 
+    for rr in r1:
+        if rr['fdzq']:
+            count=rr['fdzq'].count('-')
+            if count <5:
+                dc=5-count
+                for idc in range(dc):
+                    if rr['fdzq']:
+                        rr['fdzq']=rr['fdzq']+r"-/"
+                    else:
+                        rr['fdzq']=r'/-/'
+            ls_l=rr['fdzq'].split('-')
+            for ii,ls_l2 in enumerate(ls_l):
+                rr[ls2[ii]]=ls_l2
+        rr.pop('fdzq')
+        tiword(pathw,rr,rr['fd1'])
+        
+
+                
+def relfh(x):
+    print(x)
+    if x['fd37'].find("工商")>-1:
+        return "市"
+    else:
+        return "分行"
     
 def riq2(riq):
     r=""
     lp=[]
     if riq:
-        print(riq)
+        
         rdatetime=datetime.datetime.strptime(str(riq),"%Y-%m-%d")
         lp.append(str(rdatetime.year))
         lp.append("年")
@@ -37,29 +82,54 @@ def riq2(riq):
     return r
 
 def tiword(path,dic,flname):
-    flpathsave=path[:path.rfind("\\")+1]+flname+".docx"
+    flpathsave=path[:path.rfind("\\")+1]+"预评估"+flname+".docx"
     if os.path.exists(flpathsave):
         path=flpathsave
      
     docxx=Document(path)
     for para in docxx.paragraphs:
         for i in range(len(para.runs)):
+            if para.runs[i].text.find('三、价值时点：')>-1:
+                para.runs[i].text='三、价值时点：'+dic['fd10_1']
             for k,v in dic.items():
-                para.runs[i].text=para.runs[i].text.replace("["+k+"]",v)
+                
+                para.runs[i].text=para.runs[i].text.replace("["+str(k)+"]",str(v))
+    table=docxx.tables
+    for otable in table:
+        rows_num=len(otable.rows)
+        columns_num=len(otable.columns)
+        for j in range(rows_num):
+            for ll in range(columns_num):
+                
+                for k,v in dic.items():
+                    sp=otable.cell(j,ll).text
+                    otable.cell(j,ll).text=sp.replace("["+str(k)+"]",str(v))
+                run = otable.cell(j,ll).paragraphs[0].runs
+                for rrr in run :
+                    rrr.font.name = u'仿宋_gb2312'
+                    r = rrr._element
+                    r.rPr.rFonts.set(qn('w:eastAsia'), u'仿宋_gb2312')
+                otable.cell(j,ll).paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     docxx.save(flpathsave)
 
 
 def getlistl(dataname,us,pwd,host1,ch,mu,tablename,list_l,searchlist):
     mysqlm=mysql_model(dataname,us,pwd,host1,ch)
+    
     mresult=mysqlm.selectmul(mu,tablename,list_l,searchlist)
+    
     df=pd.DataFrame(mresult,columns=searchlist)
     return df
 
 
 def readexcel(path):
-    df=pd.read_excel(path,header=0,sheet_name = 0,usecols='A:A')
+    df=pd.read_excel(path,header=0,sheet_name = 0,usecols='A')
+    
     df.fillna("",inplace=True)
-    return df.values.tolist()
+    pr=df.values.tolist()
+    pr1=[x[0] for x in pr]
+    
+    return [pr1]
 
 
 
@@ -79,7 +149,7 @@ def  qzhuan(riq):
 
             r.append(lp[int(f[1][-1:])])
             r.append("月")
-            if len(f[2])>1 and f[1][0] !="0":
+            if len(f[2])>1 and f[2][0] !="0":
                 r.append(lp[int(f[2][0])])
                 r.append("十")
 
@@ -96,7 +166,7 @@ def zhuandaxie(nums):
     p=0
     if  is_number(nums):
         l=len(nums)  #长度
-        print(l)
+        
         if l<20:
             for i in range(0,l):
                 ii=l-1-i
@@ -141,13 +211,13 @@ if __name__ == "__main__":
     pp=os.path.join(os.path.abspath('.'),r"yugu\xlsx\预估报告编号.xlsx")
     p2=os.path.join(os.path.abspath('.'),r"yugu\mu\模板1.docx")
     data_n="im2006"
-    us="root"#"user"
-    pwd="111"#"7940"
-    host="localhost"#"192.168.1.3"
+    us="user"#"user"
+    pwd="7940"#"7940"
+    host="192.168.1.3"#"192.168.1.3"
     ch="utf8"
     mu=["fd1"]
     tablename="reports"
-    searchlist=["district","fd3","fd1","fd42","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38"]
+    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature"]
     model(pp,p2,data_n,us,pwd,host,ch,mu,tablename,searchlist)
     
 

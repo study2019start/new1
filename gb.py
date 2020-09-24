@@ -3,7 +3,7 @@ from access import access_model as ac
 def gb(lis):
 
     le=len(lis)
-    if le <=2:
+    if le <=1:
         return lis
     f=int(le/2)
     a1=gb(lis[:f])
@@ -58,7 +58,7 @@ def st1(i=2,ii=4,iii=6):
     print(i,"\n",ii,"\n",iii)
 
 if __name__ == "__main__":
-    sp=[2,3,66,12,3,1,15,12,16,7,12,57]
+    sp=[2,1]
     st1(i=5,iii=33)
     a=1
     b=a

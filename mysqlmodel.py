@@ -103,21 +103,23 @@ class mysql_model(object):
         insertlist=[]
         wherep=""
         s1 = "%s"
-        for is1,s1 in enumerate(searchwhere):
+        for is1,ss1 in enumerate(searchwhere):
             valuel=[]
             sv=[]
             wheres=""
-            for k,v in s1.items():
+            if ss1:
                 wheres=" where "
-                valuel.append(v)
-                sv.append(k+"="+s1)
+                for k,v in ss1.items():
+                    
+                    valuel.append(v)
+                    sv.append(k+"="+s1)
             strsearch="select from %s  %s %s " %(tablename,wheres,'and'.join(sv))
             rq=cur.exxcute(strsearch,valuel)
             dbb.commit()
             fp=cur.fetchmany(rq)
             if fp:
                 shailist.append(whe[is1]) #为更新
-                shailistwhere.append(s1)
+                shailistwhere.append(ss1)
             else:
                 insertlist.append(whe[is1])# 插入的值
 
@@ -251,6 +253,7 @@ class mysql_model(object):
         else:
             alllis=""
         sqlt="select "+sl+" from "+tablename+alllis
+        print(sqlt)
         req = cur.execute(sqlt,mure)
         info = cur.fetchmany(req)
         cur.close()
