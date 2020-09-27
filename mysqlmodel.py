@@ -103,6 +103,7 @@ class mysql_model(object):
         insertlist=[]
         wherep=""
         s1 = "%s"
+        req=None
         for is1,ss1 in enumerate(searchwhere):
             valuel=[]
             sv=[]
@@ -113,8 +114,9 @@ class mysql_model(object):
                     
                     valuel.append(v)
                     sv.append(k+"="+s1)
-            strsearch="select from %s  %s %s " %(tablename,wheres,'and'.join(sv))
-            rq=cur.exxcute(strsearch,valuel)
+            strsearch="select * from %s  %s %s " %(tablename,wheres,'and'.join(sv))
+            
+            rq=cur.execute(strsearch,valuel)
             dbb.commit()
             fp=cur.fetchmany(rq)
             if fp:
@@ -153,21 +155,25 @@ class mysql_model(object):
         value=[]
         s=[]
         if insertlist:
+           
             for ip,minset in enumerate(insertlist):
-                for kk,vv in minset:
+                templ=[]
+                for kk,vv in minset.items():
                     if ip==0:
                         field.append(kk)
                         s.append(s1)
-                    templ=[]
+                    
                     templ.append(vv)
                 value.append(templ)
 
             st ="insert into %s  ( %s ) values " % (tablename,','.join(field))
+            print(st)
+            print(value)
             try:
-                req1 = cur.executemany(st+"("+','.join(s)+")",value)
+                req = cur.executemany(st+"("+','.join(s)+")",value)
                 dbb.commit()
             except Exception as e:
-
+                print(e)
                 dbb.rollback()
         cur.close()
         dbb.close()
