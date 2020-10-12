@@ -8,8 +8,8 @@ import re
 from docx.oxml.ns import qn
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
-re1="Y(\d{4})-\d{5}$"
-re2="Y\d{4}-(\d{5})$"
+re1="[Y|Z](\d{4})-\d{5}$"
+re2="[Y|Z]\d{4}-(\d{5})$"
 class yugum():
     def __init__(self):
         pass
@@ -20,8 +20,8 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     readexcel_r=readexcel(pathx)
     ls2=['fd42_hx','fd42_lx','fd42_lc','fd42_td','fd42_y','fd42_jg']
     df=getlistl(dataname,us,pwd,host1,ch,mu,tablename,readexcel_r,searchlist)
-    df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 else str(x)+"股份有限公司")
-    df['fd38']=df['fd38'].apply(lambda x: str(x).replace("支行",""))
+    df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 or str(x)=='上海银行' else str(x)+"股份有限公司")
+    df['fd38']=df['fd38'].apply(lambda x:str(x)+"支行" if str(x).find("支行")<0 and  str(x).find("分行")<0 else str(x) )
     df['fd1_year']=df['fd1'].apply(lambda x: re.findall(re1,x)[0])
     df['fd1_2']=df['fd1'].apply(lambda x: re.findall(re2,x)[0])
     df['fd10_1']=df['fd10'].apply(lambda x :riq2(x))
@@ -32,7 +32,7 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     df['fd16']=df['fd16'].apply(lambda x : '出让' if x =='' else x)
     
     df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15']]
-    
+    df1['title']=df1['fd1'].apply(lambda  x: '预评估报告' if x[0]=='Y' else '询价报告')
     df1['fh']=df1.apply(relfh,axis=1)
     r1=df1.to_dict("records")
     
@@ -62,9 +62,11 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
 def relfh(x):
     print(x)
     if x['fd37'].find("工商")>-1:
-        return "市"
+        return "上海市"
+    elif x['fd37']=='上海银行':
+        return ""
     else:
-        return "分行"
+        return "上海分行"
     
 def riq2(riq):
     r=""
@@ -82,17 +84,18 @@ def riq2(riq):
     return r
 
 def tiword(path,dic,flname):
-    flpathsave=path[:path.rfind("\\")+1]+"预评估"+flname+".docx"
+    flpathsave=path[:path.rfind("\\")+1]+dic['title']+flname+".docx"
     if os.path.exists(flpathsave):
         path=flpathsave
      
     docxx=Document(path)
     for para in docxx.paragraphs:
         for i in range(len(para.runs)):
-            if para.runs[i].text.find('三、价值时点：')>-1:
-                para.runs[i].text='三、价值时点：'+dic['fd10_1']
+            # if para.runs[i].text.find('三、价值时点：')>-1:
+            #     para.runs[i].text='三、价值时点：'+dic['fd10_1']
+            # if para.runs[i].text.find('title')>-1:
+            #     para.runs[i].text=para.runs[i].text.replace("title",dic['title'])
             for k,v in dic.items():
-                
                 para.runs[i].text=para.runs[i].text.replace("["+str(k)+"]",str(v))
     table=docxx.tables
     for otable in table:
@@ -100,7 +103,6 @@ def tiword(path,dic,flname):
         columns_num=len(otable.columns)
         for j in range(rows_num):
             for ll in range(columns_num):
-                
                 for k,v in dic.items():
                     sp=otable.cell(j,ll).text
                     otable.cell(j,ll).text=sp.replace("["+str(k)+"]",str(v))
@@ -127,8 +129,9 @@ def readexcel(path):
     
     df.fillna("",inplace=True)
     pr=df.values.tolist()
-    pr1=[x[0] for x in pr]
     
+    pr1=[x[0] for x in pr]
+  
     return [pr1]
 
 
@@ -144,16 +147,19 @@ def  qzhuan(riq):
                 r.append(lp[int(i)])
             r.append("年")
             if len(f[1])>1 and f[1][0] !="0":
-                r.append(lp[int(f[1][0])])
+                if f[1][0] !="1":
+                    r.append(lp[int(f[1][0])])
                 r.append("十")
-
-            r.append(lp[int(f[1][-1:])])
+            if int(f[1][-1:]) !=0:
+                r.append(lp[int(f[1][-1:])])
             r.append("月")
             if len(f[2])>1 and f[2][0] !="0":
-                r.append(lp[int(f[2][0])])
+                if f[2][0] !="1":
+                    r.append(lp[int(f[2][0])])
                 r.append("十")
 
-            r.append(lp[int(f[2][-1:])])
+            if int(f[2][-1:]) !=0:
+                r.append(lp[int(f[2][-1:])])
             r.append("日")
     return ''.join(r)
 

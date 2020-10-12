@@ -77,7 +77,7 @@ class sql_server(object):
             cursor.execute(selectlist,value)
             r=[ row[0] for row in cursor.fetchall()]  #以查询出来的第一个作为匹配
 
-            if sp:
+            if sp and r:
                 sw=data[sp]
                 if sw ==r[0]:
                     update=True

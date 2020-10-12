@@ -35,8 +35,11 @@ class model_excel(object):
             shutil.copy( filename,svpath)
         else:
             svpath=filename
-        app=xlw.App(visible=False,add_book=False)    
-        wb=app.books.open(svpath,update_links=False)
+        app=xlw.App(visible=False,add_book=False) 
+        if os.path.exists(svpath):
+            wb=app.books.open(svpath,update_links=False)
+        else:
+            wb=app.books.add()
         if sheetnameexit(wb,sheetname):
             sh=wb.sheets[sheetname]
         else:

@@ -39,6 +39,14 @@ class Run():
                         whe_dict['person']="柴书钦"
                         whe_dict['depperson']="朱留青"
                         whe_dict['distrperson']="朱留青"
+
+                    if ms_l['pgmd']=='房地产抵押估价':
+                        whe_dict['fd11']='抵押价值评估'
+                    whe_dict['fd31']=0.5
+                    
+
+                    whe_dict['category']=ms_l['ybgxmbh'][0]
+                    
                     search["fd1"]=whe_dict['fd1']
                     whe_dict['district']=ms_l['xq']
                     whe_dict['fd3']=ms_l['xmmc']
@@ -52,10 +60,12 @@ class Run():
                     whe_dict['fd10']=ms_l['jsrq']
                     ls=str(ms_l['pgff']).split(',')
                     whe_dict['fd12']=" ".join(ls)
-                    whe_dict['fd13']=ms_l['tdyt']
-                    whe_dict['fd14']=ms_l['tdyt']
-                    if ms_l['tdqbfs']:
-                        whe_dict['landfeature']=ms_l['qsxz']
+                    if ms_l['bgnr']=='居住' or ms_l['bgnr']=='住宅':
+                        whe_dict['fd13']='住宅'
+                        whe_dict['fd14']='住宅'
+                        whe_dict['fd15']='住宅'
+                    if ms_l['qsxz'].find("集体")>-1:
+                        whe_dict['landfeature']="集体"
                     else:
                         whe_dict['landfeature']="国有"
                     whe_dict['fd16']=ms_l['tdqbfs']
@@ -83,6 +93,22 @@ class Run():
                             whe_dict["fd38"]=sp
                     whe_dict['fd39']=ms_l['lxry']
                     whe_dict['fd41']="待审核"
+                    fd31b=0.5
+                    if whe_dict['category'] =="F" or whe_dict['category'] =="X":
+                        if whe_dict['fd11'] !="财产鉴证" and whe_dict['fd11'] !="赠与、继承" and whe_dict['fd11'] !='房地产课税评估':
+                            fd31b+=1
+                    elif whe_dict['category'] =="T":
+                        fd31b+=2
+                    if whe_dict['fd37']=='法院':
+                        fd31b+=2
+                    elif whe_dict['fd37']!="中国工商银行":
+                        fd31b+=0.5
+                    if whe_dict['category'] =="F" or whe_dict['category'] =="X" or whe_dict['category'] =="T":
+                        if whe_dict['fd20']>10000:
+                            fd31b+=1
+                        elif whe_dict['fd20']>1000:
+                            fd31b+=0.5
+                    whe_dict['fd31b']=fd31b
                     searchwhere.append(search)
                     whe.append(whe_dict)
         if whe:
@@ -95,7 +121,7 @@ class Run():
 
 if __name__ == "__main__":
     d1=datetime.datetime.now()
-    ddt1=datetime.timedelta(minutes=110)
+    ddt1=datetime.timedelta(minutes=5410)
     ddt2=datetime.timedelta(minutes=20)
     d2=d1-ddt1
     d3=d1+ddt2
@@ -109,7 +135,7 @@ if __name__ == "__main__":
     ms_table=["bdgl"]
     
     mslist={'wcsj_ge':dd1,'wcsj_le':dd2}
-    selectlist=['ybgxmbh','xq','xmmc','lpmc','lxry','qprq','pgsd','jsrq','pgff','jzmj','fczjz','fdc_dj','qzgjs','zgjs','wtr','xmly','zdkr','tdyt','qsxz','tdqbfs']
+    selectlist=['ybgxmbh','xq','xmmc','lpmc','lxry','qprq','pgsd','jsrq','pgff','jzmj','fczjz','fdc_dj','qzgjs','zgjs','wtr','xmly','zdkr','bgnr','qsxz','tdqbfs','pgmd']
 
     mysql_datname="im2006"
     mysql_us="root"

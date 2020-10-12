@@ -124,8 +124,6 @@ class mysql_model(object):
                 shailistwhere.append(ss1)
             else:
                 insertlist.append(whe[is1])# 插入的值
-
-
         if shailist :
             for k,v in shailist[0].items():
                 s.append(k+"="+s1)
@@ -136,15 +134,12 @@ class mysql_model(object):
             for ii,rs in enumerate(shailist):
                 value1=[]
                 for ki,vi in rs.items():
-                    value1=value1.append(vi)
+                    value1.append(vi)
                 if shailistwhere[ii]:
                     for kii,vii in shailistwhere[ii].items():
-                        value1=value1.append(vii)
+                        value1.append(vii)
                 value.append(value1)
-                
-
             st ="update %s  set %s  " % (tablename,','.join(s))
-            
             st= st +wherep+" %s " % ("and".join(s2))
             try:
                 req = cur.executemany(st,value)
@@ -155,17 +150,14 @@ class mysql_model(object):
         value=[]
         s=[]
         if insertlist:
-           
             for ip,minset in enumerate(insertlist):
                 templ=[]
                 for kk,vv in minset.items():
                     if ip==0:
                         field.append(kk)
                         s.append(s1)
-                    
                     templ.append(vv)
                 value.append(templ)
-
             st ="insert into %s  ( %s ) values " % (tablename,','.join(field))
             print(st)
             print(value)
@@ -213,7 +205,6 @@ class mysql_model(object):
                 alllis = alllis + (' and ').join(mulis)
         else:
             alllis=""
-       
         if  between:
             if alllis=="":
                 alllis="  where "
@@ -233,7 +224,6 @@ class mysql_model(object):
         cur = dbb.cursor()
         mv=""
         mure=()
-        
         sl=""
         if searchlistt:
             sl=",".join(searchlistt)
@@ -244,7 +234,6 @@ class mysql_model(object):
             for i,mm in enumerate(mu):
                 if i==0:
                     mv=mm+" in("
-               
                 else:
                     mv=" and " +mm +" in ("
                 mf=""

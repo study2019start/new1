@@ -92,7 +92,7 @@ def upload(fpath,applyNo): #applyNo 是List
                         mulupdata.append(lsv)
                         hasnum.append(ii)
                         fp.append(os.path.join(fpath,lsv['applyNo']+".pdf"))
-                        inset.append("insert1")
+                        inset.append("update1")
     del sql
     del sql2
     if result:
@@ -122,38 +122,31 @@ def upload(fpath,applyNo): #applyNo 是List
                 #ups.pop('remarks')
                 #ups['fileUnifiedNo']=fileuid
                 fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
-                inset.append("update1")
+                inset.append("insert1")
         print(mulupdata)
         print(fp)
         print(inset)
         if mulupdata:
             mul=Pool(1)
-            qq=Manager().Queue()
             qq2=Manager().Queue()
             for ii,lsd in enumerate(mulupdata):
                 #mul.apply(muldup,(lsd,fp[ii],qq,emp[ii]))
-                muldup(lsd,fp[ii],qq,inset[ii],qq2)
+                muldup(lsd,fp[ii],inset[ii],qq2)
             #mul.close()
             #mul.join()
            
 
             
-            #uptt(qq,fpath,qq2)
+            
             
  
-def uptt(qq,fpp,qq2):
-    while not qq.empty():
-        ls=qq.get()
-        ls2=qq2.get()
-        fp=os.path.join(fpp,ls['applyNo']+".pdf")
-        muldup(ls,fp,qq,ls2,qq2)
-        time.sleep(10)
+
     
 
     print("---------------完成-------------")
 
 
-def muldup(updata,fpath,que,insertup,que2):
+def muldup(updata,fpath,insertup,que2):
     if 'reportId' in list(updata.keys()):
         updata.pop("reportId")
     
@@ -212,6 +205,7 @@ def muldup(updata,fpath,que,insertup,que2):
         if result1[0]=='0':
             updata['reportId']=updata["assessNo"]
             updata['flag']="1"
+            updata['assessStatus']="7"
             sql2=sql_server("192.168.1.8","sa","ldpjwy","icbc_api","1433")
             sql2.updateorinsert("icbcapi_assessment",{"applyNo":updata["applyNo"]},updata,['applyNo'],insertup)
             
