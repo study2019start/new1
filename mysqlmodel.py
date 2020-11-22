@@ -91,7 +91,7 @@ class mysql_model(object):
         return req
 
 
-    def updateorinsertmany(self,whe,searchwhere,tablename):# 更新内容字典列表，指定的条件列表，表名
+    def updateorinsertmany(self,whe,searchwhere,tablename,upcode=True):# 更新内容字典列表，指定的条件列表，表名,upcode表示更新条件是否一致
         value = []
         field=[]
         dbb=self.db1.connection()
@@ -104,6 +104,7 @@ class mysql_model(object):
         wherep=""
         s1 = "%s"
         req=None
+ 
         for is1,ss1 in enumerate(searchwhere):
             valuel=[]
             sv=[]
@@ -124,7 +125,7 @@ class mysql_model(object):
                 shailistwhere.append(ss1)
             else:
                 insertlist.append(whe[is1])# 插入的值
-        if shailist :
+        if shailist and upcode :   #更新
             for k,v in shailist[0].items():
                 s.append(k+"="+s1)
             if shailistwhere[0]:
@@ -147,6 +148,28 @@ class mysql_model(object):
             except Exception as e:
 
                 dbb.rollback()
+        elif shailist:
+   
+            s=[]
+            s2=[]
+            for ii,rs in enumerate(shailist):
+                value1=[]
+                for ki,vi in rs.items():
+                    s.append(ki+"="+s1)
+                    value1.append(vi)
+                if shailistwhere[ii]:
+                    wherep=" where "
+                    for ki,vi in shailistwhere[ii].items():
+                        s2.append(ki+"="+s1)
+                st ="update %s  set %s  " % (tablename,','.join(s))
+                st= st +wherep+" %s " % ("and".join(s2))
+                try:
+                    req = cur.executemany(st,value1)
+                    dbb.commit()
+                except Exception as e:
+
+                    dbb.rollback()
+
         value=[]
         s=[]
         if insertlist:
@@ -159,8 +182,7 @@ class mysql_model(object):
                     templ.append(vv)
                 value.append(templ)
             st ="insert into %s  ( %s ) values " % (tablename,','.join(field))
-            print(st)
-            print(value)
+     
             try:
                 req = cur.executemany(st+"("+','.join(s)+")",value)
                 dbb.commit()
@@ -183,7 +205,7 @@ class mysql_model(object):
         dbb.close()
         return req
 
-    def select(self,mu,tablename,selectlist,between=None): #条件 表名 查找的字段  时间范围
+    def select(self,mu,tablename,selectlist=None,between=None,listname=False): #条件 表名 查找的字段  时间范围
         dbb=self.db1.connection()
         cur = dbb.cursor()
         mulis=()
@@ -214,10 +236,16 @@ class mysql_model(object):
 
         sqlt="select "+ sl + " from " +tablename+alllis+sp
         req = cur.execute(sqlt,mure)
+        col=cur.description
         info = cur.fetchmany(req)
+        if listname:
+            
+            ruturn_info=[dict(zip([xx[0] for xx in col],x)) for x  in info]
+        else:
+            ruturn_info=info
         cur.close()
         dbb.close
-        return info
+        return ruturn_info
 
     def selectmul(self,mu,tablename,listt,searchlistt):# in条件的字段 表名 in中的值
         dbb=self.db1.connection()
@@ -255,3 +283,7 @@ class mysql_model(object):
         dbb.close
         return info
 
+if __name__ == "__main__":
+    my=mysql_model("im2006",us='user',pwd="7940",host1="192.168.1.3",ch="utf8")
+    fp=my.select([{"fd1":"Y2020-01446"}],"reports",None,None,True)
+    print(fp)

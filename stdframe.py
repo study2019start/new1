@@ -164,21 +164,18 @@ def  readhtml(html1):
         html=rs3.text.encode('ISO-8859-1').decode('gb18030','ignore')
         soup=BeautifulSoup(html,"html.parser")
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
-        if so1:
-            #stf1=re.search(re6,str(so1[0])).group(1)
-            
-            res=re.search(re12,str(so1[0]))
-            if res:
-                ls[0]=res.group(1)
-            else:
-                so1f=so1.fiand("em")
-                if so1f :
-                    stf1=so1f.string
-                else:
-                    stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
-                ls[0]=stf1
+        
+        if len(so1)>0 :
+            #so1f=so1.find_all("em")
+            #print(so1f)
+            #if so1f :
+                #stf1=so1f[0].string
+            #else:
+            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
+            ls[0]=stf1
         so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
         for i,soupr in enumerate(so):
+            print(soupr)
             if str(soupr.string).find("装修状况")>-1:
                 str1 = so[i+1].string
                 str2=''
@@ -327,9 +324,10 @@ if __name__ == "__main__":
     t=time.time()
     #print(time.strftime("%H:%M:%S",time.localtime()))
     #lists=["恒文星尚湾","昱龙家园"]
-    fname=r"E:\二季度一手楼盘.xlsx"
+    fname=r"E:\S1一手房楼盘典型楼盘.xlsx"
     #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    lists1=read_excel(fname,'Sheet1',3)
+    lists1=read_excel(fname,'20S3',3)
+    print(lists1)
     #lists1=[["禹洲雍锦府",1]]
    # print(lists1)
     longlis=[]
@@ -350,7 +348,7 @@ if __name__ == "__main__":
     xlww=model_excel()
     df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
      
-    xlww.xlwingwirte(df,fname,'Sheet1',True)
+    xlww.xlwingwirte(df,fname,'20S3',True,"K2")
     #exlcelwrite(sflist,fname2)
     #print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

@@ -16,7 +16,11 @@ class he(object):
     def __init__(self,searchlist,searchlist2,filename,host,database,tablename,us,psw,wheredic=None):
         self.s=searchlist
         self.s2=searchlist2
-        self.ts=""
+        if searchlist:
+
+            self.ts=searchlist
+        else:
+             self.ts=searchlist2
         self.f=filename
         self.h=host
         self.d=database
@@ -30,7 +34,9 @@ class he(object):
 
     def search(self,columnsl):
         smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
-        p=pd.DataFrame(smo.select(self.w,self.t,self.ts,{'fd10':[self.t3,self.t1]}),columns=columnsl)
+        lsr=smo.select(self.w,self.t,self.ts,{'fd10':[self.t3,self.t1]})
+        print(lsr)
+        p=pd.DataFrame(lsr,columns=columnsl)
          
         return p
 
@@ -104,7 +110,7 @@ class he(object):
             sna=dft['报告编号'].isna().sum()
             print(sna)
             xlww=model_excel()
-            xlww.xlwingwirte(dft[['报告编号','完成日期','总价','估价人员']],self.f,'Sheet1',False,'K5')
+            xlww.xlwingwirte(dft[['报告编号','完成日期','总价','估价人员']],self.f,None,False,'K5')
             
             return sna
         else:

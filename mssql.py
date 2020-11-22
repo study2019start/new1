@@ -23,25 +23,24 @@ class sql_server(object):
             return rs
 
 
-    def updateorinsert(self,tablename,where,data,selectt,insertorup): #表名   where 字典条件 更新或插入的内容   查找的列  第一个要和后面searchlist对应   要匹配的列      #插入或者更新
+    def updateorinsert(self,tablename,where,data,selectt,insertorup=None): #表名   where 字典条件 更新或插入的内容  查找的列         #插入或者更新  where条件里面的第一个是要主键并且在data中包含
         cursor=self.connect.cursor()
-        insert=False
-        update=False
+        inorup=True
+         
         s=r"%s"
         sp=None
         if where:
             sp=list(where.keys())[0]
-
             if sp.find("_")>=0:
                 sp=sp[:-3]
 
         if insertorup:
             if insertorup=="insert1":
-                insert=True
-                update=False
+                inorup=True
+                 
             elif insertorup=="update1":
-                insert=False
-                update=True
+                inorup=False
+                
 
         else:   
             if selectt:
@@ -75,17 +74,18 @@ class sql_server(object):
             selectlist="".join(sp3)
 
             cursor.execute(selectlist,value)
-            r=[ row[0] for row in cursor.fetchall()]  #以查询出来的第一个作为匹配
+            r=[ row for row in cursor.fetchall()]  
 
-            if sp and r:
-                sw=data[sp]
-                if sw ==r[0]:
-                    update=True
-                else:
-                    insert=True
+            if r:
+                #sw=data[sp]
+                #if sw ==r[0]:
+                inorup=False
+                
+            else:
+                inorup=True
 
                         
-        if insert:
+        if inorup:
             insql="insert into " +tablename
             if data:
                 insql2="  values("
@@ -100,7 +100,7 @@ class sql_server(object):
                 print(insql3)
                 cursor.execute(insql3,tuple(inv3))
                 self.connect.commit()
-        if update and sp:
+        elif   sp:
             upsql="update "+ tablename +" set "
             if data:
                 upv1=[]

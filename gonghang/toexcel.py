@@ -81,48 +81,50 @@ def upload(fpath,applyNo): #applyNo 是List
 
     mulupdata=[]
     fp=[]
-    hasnum=[]
+
     inset=[]  #insert1 表示要插入 update1表示更新
-    if result2 and result:
-        for lsv in result2 :
-            for ii,ls2v in enumerate(result):
-                if lsv["applyNo"]==ls2v["zbgh"]:
-                    if ls2v['zgjs'] and ls2v['zbgh'] and  ls2v['jzmj'] and ls2v['fdc_dj'] and ls2v['fczjz']   and ls2v['fwlx'] and ls2v['ybgxmbh']:
-                        lsv["emplName"]=ls2v["zgjs"]
+    if  result:
+        for r1 in result :
+            insertt=True
+            for ii,lsv in enumerate(result2):
+                if lsv["applyNo"]==r1["zbgh"]:
+                    if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh']:
+                        lsv["emplName"]=r1["zgjs"]
                         mulupdata.append(lsv)
-                        hasnum.append(ii)
                         fp.append(os.path.join(fpath,lsv['applyNo']+".pdf"))
                         inset.append("update1")
-    del sql
-    del sql2
-    if result:
-        for ri,r1 in enumerate(result):
-            if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh'] and ri not in hasnum:
-                updata={}
-                updata["corpId"]="ASS00113"
-                updata["emplName"]=r1['zgjs']
-                updata["applyNo"]=r1['zbgh']
-                updata['assessAddress']=r1['zl']
-                updata['assessArea']=float(r1['jzmj'])
-                updata['assessUnitPrice']=int(r1['fdc_dj'])
-                updata['assessTotalPrice']=int(r1['fczjz'])*10000
-                updata['totalFloor']=int(r1['zcs']) if r1['zcs']  else 0
-                updata['floor']=int(r1['szc']) if r1['szc']  else 0
-                updata['orientation']='朝南'
-                updata['houseType']=r1['fwlx']
-                updata['schoolHouse']="0"
-                updata['bronzeMedal']="0"
-                updata['assessStatus']="6"
-                updata['assessNo']=r1['ybgxmbh']
-                #updata['fileUnifiedNo']=fileuid
-                updata['remarks']=""
-                mulupdata.append(updata)
-                #ups=updata.copy()
-                #ups.pop('emplName')
-                #ups.pop('remarks')
-                #ups['fileUnifiedNo']=fileuid
-                fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
-                inset.append("insert1")
+                        insertt=False
+                        break
+    #del sql
+    #del sql2
+            if insertt:
+                
+                    if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh'] :
+                        updata={}
+                        updata["corpId"]="ASS00113"
+                        updata["emplName"]=r1['zgjs']
+                        updata["applyNo"]=r1['zbgh']
+                        updata['assessAddress']=r1['zl']
+                        updata['assessArea']=float(r1['jzmj'])
+                        updata['assessUnitPrice']=int(r1['fdc_dj'])
+                        updata['assessTotalPrice']=int(r1['fczjz'])*10000
+                        updata['totalFloor']=int(r1['zcs']) if r1['zcs']  else 0
+                        updata['floor']=int(r1['szc']) if r1['szc']  else 0
+                        updata['orientation']='朝南'
+                        updata['houseType']=r1['fwlx']
+                        updata['schoolHouse']="0"
+                        updata['bronzeMedal']="0"
+                        updata['assessStatus']="6"
+                        updata['assessNo']=r1['ybgxmbh']
+                        #updata['fileUnifiedNo']=fileuid
+                        updata['remarks']=""
+                        mulupdata.append(updata)
+                        #ups=updata.copy()
+                        #ups.pop('emplName')
+                        #ups.pop('remarks')
+                        #ups['fileUnifiedNo']=fileuid
+                        fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
+                        inset.append("insert1")
         print(mulupdata)
         print(fp)
         print(inset)

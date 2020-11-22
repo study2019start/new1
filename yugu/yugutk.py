@@ -12,7 +12,7 @@ root.title('Baojia')
 root.geometry('450x160') 
 def do1():
     pp=os.path.join(os.path.abspath('.'),r"xlsx\预估报告编号.xlsx")
-    p2=os.path.join(os.path.abspath('.'),r"mu\模板1.docx")
+    p2=os.path.abspath('.')
     data_n="im2006"
     us="user"#"user"
     pwd="7940"#"7940"
@@ -20,7 +20,7 @@ def do1():
     ch="utf8"
     mu=["fd1"]
     tablename="reports"
-    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature"]
+    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno"]
     mm=yugum()
     mm.do(pp,p2,data_n,us,pwd,host,ch,mu,tablename,searchlist)
 

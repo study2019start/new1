@@ -42,13 +42,16 @@ class Run():
 
                     if ms_l['pgmd']=='房地产抵押估价':
                         whe_dict['fd11']='抵押价值评估'
-                    whe_dict['fd31']=0.5
+                    
                     
 
                     whe_dict['category']=ms_l['ybgxmbh'][0]
                     
                     search["fd1"]=whe_dict['fd1']
-                    whe_dict['district']=ms_l['xq']
+                    if str(ms_l['xq']).find("崇明")>-1:
+                        whe_dict['district']="崇明县"
+                    else:
+                        whe_dict['district']=ms_l['xq']
                     whe_dict['fd3']=ms_l['xmmc']
                     whe_dict['buildingname']=ms_l['lpmc']
                     whe_dict['fd4']=ms_l['wtr']
@@ -69,21 +72,21 @@ class Run():
                     else:
                         whe_dict['landfeature']="国有"
                     whe_dict['fd16']=ms_l['tdqbfs']
-                    if ms_l['jzmj']:
+                    if ms_l['jzmj']: #建筑面积
                         whe_dict['fd18']=ms_l['jzmj']
-                    if ms_l['fczjz']:
+                    if ms_l['fczjz']:#总价
                         whe_dict['fd20']=int(ms_l['fczjz'])
-                    if ms_l['fdc_dj']:
+                    if ms_l['fdc_dj']: #单价
                         whe_dict['fd21']=int(ms_l['fdc_dj'])
-                    if ms_l['qzgjs']:
+                    if ms_l['qzgjs']: #签字估价师
                         ls2=str(ms_l['qzgjs']).split(',')
                         whe_dict['fd25']=ls2[0]
                         whe_dict['signature']=ls2[-1:][0]
                     whe_dict['fd26']=ms_l['zgjs']
-                    if ms_l['wtr']:
+                    if ms_l['wtr']:         #来源
                         if ms_l['wtr'].find('工商'):
                             whe_dict['fd37']="中国工商银行"
-                    if ms_l['xmly']:
+                    if ms_l['xmly']:         #支行
                         sp=ms_l['xmly'].replace("支行","")
                         if sp=="漕河泾开发区":
                             whe_dict["fd38"]="漕河泾"
@@ -93,10 +96,22 @@ class Run():
                             whe_dict["fd38"]=sp
                     whe_dict['fd39']=ms_l['lxry']
                     whe_dict['fd41']="待审核"
+                    fd31=0.5
+                    if  whe_dict["district"]=="崇明县" or  whe_dict["district"]=="外省市":
+                        fd31+=2
+                    elif whe_dict["district"]=="金山区":
+
+                        fd31+=1
+                    elif whe_dict["district"]=="南汇区" or whe_dict["district"]=="奉贤区" or whe_dict["district"]=="嘉定区" or whe_dict["district"]=="松江区" or whe_dict["district"]=="青浦区" :
+                        fd31+=0.5
+                        
+
+                    whe_dict['fd31']=fd31
                     fd31b=0.5
                     if whe_dict['category'] =="F" or whe_dict['category'] =="X":
                         if whe_dict['fd11'] !="财产鉴证" and whe_dict['fd11'] !="赠与、继承" and whe_dict['fd11'] !='房地产课税评估':
                             fd31b+=1
+
                     elif whe_dict['category'] =="T":
                         fd31b+=2
                     if whe_dict['fd37']=='法院':

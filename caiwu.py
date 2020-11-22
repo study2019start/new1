@@ -12,7 +12,7 @@ class update(object):
         self.lis=[]
 
     def conn(self):
-        cn=mysql_model(self.d,"user","7940","192.168.1.3",)
+        cn=mysql_model(self.d,"user","7940","192.168.1.3")#",user","7940","192.168.1.3"
         redata=self.readexcel()
         listp1=[  x[self.wh[0]] for  x in redata ]
         resp=[]
@@ -24,7 +24,7 @@ class update(object):
         #     pp=cn.select({self.wh[0]:flp[self.wh[0]]},"reports",self.wh)
         #     print(pp)
         #     resp.append(pp)
-        flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
+        flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%H%M%S")+".xlsx")
         print(inlist)
         resp=cn.selectmul([self.wh[0]],'reports',inlist,self.wh)
         df2=pd.DataFrame(resp,columns=['fd1','fd33_2','fd34_2','ck_2','fd35_2','fd36_2'])
@@ -33,7 +33,7 @@ class update(object):
         df2['ck_2'].fillna("-1",inplace=True)
         df3=df2.loc[(df2["fd33_2"]>0 )| ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))]
         df3.to_excel(flienew)
-        flienew2=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%S")+".xlsx")
+        flienew2=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%H%M%S")+".xlsx")
         df2.to_excel(flienew2)
         #df2['count']=df2['fd33_2'].apply(lambda x:  1 if x>0  else  0)
         #if df2['count'].sum() <3 :
@@ -98,7 +98,7 @@ class update(object):
 
 if __name__ == "__main__":
     t=time.time()
-    fileurl=r"E:\王昱鹏0830.xlsx"
+    fileurl=r"E:\王昱鹏0930.xlsx"
     dan="im2006"
     whl=['fd1','fd33','fd34','checkno','fd35','fd36']
     up=update(dan,fileurl,whl)

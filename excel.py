@@ -5,6 +5,7 @@ import os
 import shutil
 import datetime
 class model_excel(object):
+    @classmethod
     def xlwingcreate(self,df,filename,rangestart='A1'):
         if os.path.exists(filename):
             fid1=filename.rfind(".")
@@ -14,9 +15,16 @@ class model_excel(object):
         else:
             filename_t=filename
         app=xlw.App(visible=False,add_book=False)
+        new_i=1
         book=app.books.add()
-        book.sheets.add("1")
-        book.sheets["1"].range(rangestart).value=df
+        for ii in  range(1,100):
+            if sheetnameexit(book,str(ii)):
+                pass
+            else:
+                new_i=ii
+                break
+        book.sheets.add(str(new_i))
+        book.sheets[str(new_i)].range(rangestart).value=df
         book.save(filename_t)
         book.close()
         app.quit()
@@ -24,12 +32,14 @@ class model_excel(object):
     def xlwingwirte(self,df,filename,sheetname,copy,rangestart='H2'):
         
         #print(df)
+        findd=filename.rfind('.')
+        findd1=filename.rfind('\\')
+        print(findd1)
+        st1=filename[findd:len(filename)] #后缀名
+        st2=filename[findd1:findd] #文件名
+        st3=filename[0:findd1] #文件所在目录
         if copy:
-            findd=filename.rfind('.')
-            findd1=filename.rfind('\\')
-            st1=filename[findd:len(filename)] #后缀名
-            st2=filename[findd1:findd] #文件名
-            st3=filename[0:findd1] #文件所在目录
+           
             newfn=st2+str(time.strftime("%H%M%S",time.localtime()))+st1  #文件名加入时间
             svpath=os.path.join(st3,newfn)
             shutil.copy( filename,svpath)
@@ -40,10 +50,13 @@ class model_excel(object):
             wb=app.books.open(svpath,update_links=False)
         else:
             wb=app.books.add()
-        if sheetnameexit(wb,sheetname):
-            sh=wb.sheets[sheetname]
+        if sheetname:
+            if sheetnameexit(wb,sheetname):
+                sh=wb.sheets[sheetname]
+            else:
+                sh=wb.sheets.add(sheetname)
         else:
-            sh=wb.sheets.add(sheetname)
+            sh=wb.sheets[0]
         
         sh.range(rangestart).value=df.values
         if st2.find('信衡') > -1:

@@ -22,32 +22,33 @@ def choose2():
 
 def modelchu():
     filepath=path.get().replace("/","\\")
-    if filepath:
-        try:
-            
-            where=[{"category":"G"}]
-            slist=['fd1','fd3','fd7','fd10','fd20','fd26']
-            host='192.168.1.3'
-            database='im2006'
-            m=he(slist,filepath,host,database,"reports","user","7940",where)
-            v.set(m.model())
-            showinfo(title="提示", message="成功")
-        except Exception as e:
-            showinfo(title="提示", message="出错")
+    if filepath: 
+        #try:
+        slist2=['fd1','fd26']
+        where=[{"category":"G"}]
+        slist=['fd1','fd3','fd7','fd10','fd20','fd26']
+        host='192.168.1.3'
+        database='im2006'
+        m=he(slist,False,filepath,host,database,"reports","user","7940",where)
+        v.set(m.model())
+        showinfo(title="提示", message="成功")
+        #except Exception as e:
+            #showinfo(title="提示", message="出错")
 
 def show():
     filepath=path2.get().replace("/","\\")
     if filepath:
-        try:
-            where=[{"category":"G"}]
-            slist2=['fd1','fd26']
-            host='192.168.1.3'
-            database='im2006'
-            m=he(slist2,filepath,host,database,"reports","user","7940",where)
-            m.model2()
+        #try:
+        where=[{"category":"G"}]
+        slist2=['fd1','fd26']
+        slist=['fd1','fd3','fd7','fd10','fd20','fd26']
+        host='192.168.1.3'
+        database='im2006'
+        m=he( False,slist2,filepath,host,database,"reports","user","7940",where)
+        m.model2()
             
-        except Exception as e:
-            showinfo(title="提示", message="出错")
+        #except Exception as e:
+            #showinfo(title="提示", message="出错")
 
 path=tk.StringVar()
 path2=tk.StringVar()

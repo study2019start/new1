@@ -7,6 +7,9 @@ from  docx import Document
 import re
 from docx.oxml.ns import qn
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+import re
+import decimal  
+
 
 re1="[Y|Z](\d{4})-\d{5}$"
 re2="[Y|Z]\d{4}-(\d{5})$"
@@ -19,6 +22,7 @@ class yugum():
 def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     readexcel_r=readexcel(pathx)
     ls2=['fd42_hx','fd42_lx','fd42_lc','fd42_td','fd42_y','fd42_jg']
+    ls3=['fd_dx1','fd_dx2','fd_dx3','fd_dx4','fd_dx5']
     df=getlistl(dataname,us,pwd,host1,ch,mu,tablename,readexcel_r,searchlist)
     df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 or str(x)=='上海银行' else str(x)+"股份有限公司")
     df['fd38']=df['fd38'].apply(lambda x:str(x)+"支行" if str(x).find("支行")<0 and  str(x).find("分行")<0 else str(x) )
@@ -30,10 +34,13 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     #df['fdzq']=df['fdzq'].apply(lambda x : str(x).split("，")[0])
     df['landfeature']=df['landfeature'].apply(lambda x : '国有' if x =='' else x)
     df['fd16']=df['fd16'].apply(lambda x : '出让' if x =='' else x)
-    
-    df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15']]
+    df['fd_dz_1']=df['fd3'].apply(lambda x :fen1(x))
+    df['fd_dz_2']=df['fd3'].apply(lambda x :fen2(x))
+    df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15','credentialsno','fd_dz_2','fd_dz_1']]
     df1['title']=df1['fd1'].apply(lambda  x: '预评估报告' if x[0]=='Y' else '询价报告')
-    df1['fh']=df1.apply(relfh,axis=1)
+    #df1['fh']=df1.apply(relfh,axis=1)
+    df1['fh']=df1['fd37'].apply(lambda x : relfh(x))
+
     r1=df1.to_dict("records")
     
     print(r1)
@@ -55,19 +62,79 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
             for ii,ls_l2 in enumerate(ls_l):
                 rr[ls2[ii]]=ls_l2
         rr.pop('fdzq')
-        tiword(pathw,rr,rr['fd1'])
+        if not rr['credentialsno']=="":
+            count=rr['credentialsno'].count('-')
+            if count <4:
+                dc=4-count
+                for idc in range(dc):
+                    if rr['credentialsno']:
+                        rr['credentialsno']=rr['credentialsno']+r"-/"
+                    else:
+                        rr['credentialsno']=r'/-/'
+            ls_l=rr['credentialsno'].split('-')
+            for ii,ls_l2 in enumerate(ls_l):
+                rr[ls3[ii]]=ls_l2
+            if rr['fd_dx5']==r"/":
+                rr['fd_dx5']=0
+        rr.pop('credentialsno')
+        if not rr.__contains__("fd_dx1"):
+            pathw1=os.path.join(pathw,r"yugu\mu\模板1.docx")
+             #r"yugu\mu\模板1.docx"
+        else:
+            if not rr["fd_dx4"] ==r"/":
+                if re.match(r"^\d+(\.\d{1,5})*$",rr['fd_dx4']):
+                    rr["fd20_1_2"]=int(rr["fd20"])+int(rr['fd_dx4'])
+                    rr["fd20_1_1"]=zhuandaxie(rr["fd20_1_2"])
+                    rr["fd_dx4"]=format(rr["fd_dx4"],'.2f')
+                    rr["fd20_1_2"]=format(rr["fd20_1_2"],'.2f')
+                    rr['fd3']="及".join([rr['fd3'],rr['fd_dx1']])
+            pathw1=os.path.join(pathw,r"yugu\mu\模板2.docx")
+        tiword(pathw1,rr,rr['fd1'])
         
 
                 
 def relfh(x):
-    print(x)
-    if x['fd37'].find("工商")>-1:
+  
+    if x.find("工商")>-1:
         return "上海市"
-    elif x['fd37']=='上海银行':
+    elif x=='上海银行':
         return ""
     else:
         return "上海分行"
-    
+
+def fen1(fd3):
+    a1=fd3.find("弄")
+    a2=fd3.find("号")
+    a3=fd3.find("苑")
+    a4=fd3.find("园")
+    if a1>-1:
+        return fd3[:a1+1]
+    elif a2>-1:
+        if a2>a3 and a2 >a4 :
+            return fd3[:a2+1]
+        else:
+            if a3>a4:
+                return fd3[:a3+1]
+            else:
+                return fd3[:a4+1] if a4>-1 else ""
+
+def fen2(fd3):
+
+    a1=fd3.find("弄")
+    a2=fd3.find("号")
+    a3=fd3.find("苑")
+    a4=fd3.find("园")
+    if a1>-1:
+        return fd3[a1+1:]
+    elif a2>-1:
+        if a2>a3 and a2 >a4 :
+            return fd3[a2+1:]
+        else:
+            if a3>a4:
+                return fd3[a3+1:]
+            else:
+                return fd3[a4+1:] if a4>-1 else ""
+
 def riq2(riq):
     r=""
     lp=[]
@@ -86,8 +153,9 @@ def riq2(riq):
 def tiword(path,dic,flname):
     flpathsave=path[:path.rfind("\\")+1]+dic['title']+flname+".docx"
     if os.path.exists(flpathsave):
-        path=flpathsave
-     
+        #path=flpathsave
+        os.remove(flpathsave)
+    print(path)
     docxx=Document(path)
     for para in docxx.paragraphs:
         for i in range(len(para.runs)):
@@ -179,19 +247,35 @@ def zhuandaxie(nums):
                 nm=int(nums[i:i+1])
                 if i<l-1 and nm==0:
                     if int(nums[i+1:i+2]) >0:
-                        dax.append(da1[0])
+                        if ii %4 ==0:
+                            if i-1>-1:
+                                if int(nums[i-1:i]) >0:
+                                    pass
+                                else:
+                                    dax.append(da1[0])
+                        else:
+
+                            dax.append(da1[0])
                 elif nm==0 :
                     pass
                 else:
                     dax.append(da1[nm])
                 #if (ii+4) % 4 ==0  and i>0 :
-                if (ii==4 and l <9) or (ii==4 and nm >0) or ii==12 :
+                if ii==4  :
+                    if nm>0:
+                        dax.append(da2[3]) 
+                    elif l<12:
+                        for p in range(0,l-ii-1):
+                            if int(nums[i-p-1:i])>0:
+                                dax.append(da2[3]) 
+                                break
+                elif ii==12 :
                     dax.append(da2[3]) 
                 elif ii==8:
                     dax.append(da2[4])
                 elif ii== 16:
                     dax.append(da2[5])
-                elif nm >0:
+                elif nm >0 and ii >0:
                     ll=(ii+4)%4
                     dax.append(da2[ll-1])
         return "".join(dax)
@@ -215,7 +299,7 @@ def is_number(s):
     return False
 if __name__ == "__main__":
     pp=os.path.join(os.path.abspath('.'),r"yugu\xlsx\预估报告编号.xlsx")
-    p2=os.path.join(os.path.abspath('.'),r"yugu\mu\模板1.docx")
+    p2=os.path.abspath('.')
     data_n="im2006"
     us="user"#"user"
     pwd="7940"#"7940"
@@ -223,8 +307,8 @@ if __name__ == "__main__":
     ch="utf8"
     mu=["fd1"]
     tablename="reports"
-    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature"]
+    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno"]
     model(pp,p2,data_n,us,pwd,host,ch,mu,tablename,searchlist)
     
 
-    #print("".join(zhuandaxie(str(50000000020000))))
+    #print("".join(zhuandaxie(str(101500))))

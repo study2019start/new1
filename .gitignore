@@ -1,0 +1,14 @@
+
+/Lib
+/build
+/dist
+/原始文件
+/完成
+in.ini
+*.xlsx
+/pycrypto-2.6.1
+/Scripts
+/图片
+/*.xls
+/yugu/xlsx/*
+/yugu/mu/*
