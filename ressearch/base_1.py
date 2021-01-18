@@ -196,6 +196,8 @@ class base(object):
                                                 dicr['churangfangshi']=self.get_eleminxpath(zilist[18],'.//span').text
                                                 dicr['zt']=self.get_eleminxpath(zilist[19],'.//span').text
                                                 dicr['danwei']=self.get_eleminxpath(zilist[21],'.//span').text
+                                                dicr['tudimianji']=self.get_eleminxpath(zilist[8],'.//span').text
+                                                dicr['mianji']=self.get_eleminxpath(zilist[9],'.//span').text
                                                # dicr['dijia']=str(self.get_eleminxpath(zilist[17],'.//span').text).replace('(元/m²)','')
                                                 #把字典数据放入listap列表
                                                 #if dicr['dizhi']!='' and dicr['sizhi']!='' and dicr['leix']!='' and  dicr['rj']!='' and dicr['ctime']!='' and dicr['dijia']!='':

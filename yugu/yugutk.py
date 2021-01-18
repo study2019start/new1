@@ -20,7 +20,7 @@ def do1():
     ch="utf8"
     mu=["fd1"]
     tablename="reports"
-    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno"]
+    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno","fdjing"]
     mm=yugum()
     mm.do(pp,p2,data_n,us,pwd,host,ch,mu,tablename,searchlist)
 

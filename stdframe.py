@@ -25,6 +25,7 @@ re9=r'<a.*>(.*)</a>'
 re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
 re11=r'>(\w\W)<'
 re12=r'.*([\u4e00-\u9fa5]\d+\.*\d*.*[\u4e00-\u9fa5]*\/*[\u4e00-\u9fa5]*).*'
+re13=r'^http.+\.com/$'
 
 class firstsou(object):
     def __init__(self,path,ncol,shname):
@@ -60,7 +61,28 @@ def runss(lo,qp):
     Lock().release()
         #for resf in resultlist:
         #    print(resf)
-        
+
+
+def test(searchw):
+    url="https://sh.newhouse.fang.com/house/web/proxy.php?t="+rand()
+    data={}
+    data["atype"]=4
+    data["q"]=searchw
+    result=requests.post(url,data=data,headers=head)
+    
+    s=result.text.encode(result.encoding,'ignore').decode('utf-8','ignore').split("^")
+    
+   
+    if s and len(s) >3:
+        s2=re.match(re13,s[3])
+        if s2 :
+           
+            return s[3],True
+        else:
+            return None,False
+
+    else:
+        return None,False
 
 def searchbegin(lo):
      
@@ -75,69 +97,80 @@ def searchbegin(lo):
     else:
         slo.append(lo[0])
     for sslo in slo:
-        dd['keyword'] = sslo
-        result=requests.post(url,data=dd,headers=head)
-        
-        sp=result.text.split("^")
-        if sp[0]=='100':
-            url1='https:'+sp[1]+ '?xf_source='+sslo
+
+        rk,vk=test(sslo)
+        if vk :
+            result2=requests.get(rk,headers=he)
             
-            result2=requests.get(url1,headers=he)
-            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030'))
+            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),True)
             ls.append(lo[1])
             return ls
         else:
-            d2={}
-            d2['type']='urlencode'
-            d2['data']=sslo
-            d2['city']='上海'
-            ress=requests.post("https://sh.newhouse.fang.com/house/ajaxrequest/arealist.php?t="+str(rand()),data=d2,headers=he)
-            if len(ress.text)>0:
-                ress2=requests.get("https://sh.newhouse.fang.com/house/s/a9"+ress.text+"/?xl_source="+sslo)
-                html1=ress2.text.encode('ISO-8859-1').decode('gb18030','ignore')
-                so2=BeautifulSoup(html1,"html.parser")
-                ww3=so2.select('div[class="nl_con clearfix"] > ul >li>div>div>div>div[class="nlcd_name"]')
-                so33=so2.select('div[class="house_value clearfix"]>div[class="fl mr10"]')
-                for ww in ww3:
-                    sw=str(ww)
-                    #if sslo.find(sw) >=0 or sw.find(sslo)>=0:
-                    swref=re.findall(re8,sw)
-                    if swref:
-                        if swref[0].find("http")>-1:
-                            ts=swref[0]
-                        else:
-                            ts="https:"+swref[0]
-                        result22=requests.get(ts,headers=he)
-                        ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'))
-                        ls.append(lo[1])
-                        return ls 
-                    elif re.search(re9,str(ww)):
-                        if so33:
-                            if str(so33[0]).find('二手')>=0:
-                                ls[0]='二手房'
-                                ls[5]=sslo
-                                return ls
-                        sw=re.search(re9,str(ww)).group(1)
-                        if sslo.find(sw) >=0 or sw.find(sslo)>=0:
-                            swref=re.findall(re8,str(ww))
-                            if swref:
-                                if swref[0].find("http")>-1:
-                                    ts=swref[0]
-                                else:
-                                    ts="https:"+swref[0]
-                                
-                                result22 = requests.get(ts,headers=he)
-                                ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'))
-                                ls.append(lo[1])
-                                return ls
+            dd['keyword'] = sslo
+            result=requests.post(url,data=dd,headers=head)
+            
+            sp=result.text.split("^")
+
+            if sp[0]=='100':
+                url1='https:'+sp[1]+ '?xf_source='+sslo
+                
+                result2=requests.get(url1,headers=he)
+                ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),False)
+                ls.append(lo[1])
+                return ls
+            else:
+                d2={}
+                d2['type']='urlencode'
+                d2['data']=sslo
+                d2['city']='上海'
+                ress=requests.post("https://sh.newhouse.fang.com/house/ajaxrequest/arealist.php?t="+str(rand()),data=d2,headers=he)
+                if len(ress.text)>0:
+                    ress2=requests.get("https://sh.newhouse.fang.com/house/s/a9"+ress.text+"/?xl_source="+sslo)
+                    html1=ress2.text.encode('ISO-8859-1').decode('gb18030','ignore')
+                    so2=BeautifulSoup(html1,"html.parser")
+                    ww3=so2.select('div[class="nl_con clearfix"] > ul >li>div>div>div>div[class="nlcd_name"]')
+                    so33=so2.select('div[class="house_value clearfix"]>div[class="fl mr10"]')
+                    for ww in ww3:
+                        sw=str(ww)
+                        #if sslo.find(sw) >=0 or sw.find(sslo)>=0:
+                        swref=re.findall(re8,sw)
+                        if swref:
+                            if swref[0].find("http")>-1:
+                                ts=swref[0]
+                            else:
+                                ts="https:"+swref[0]
+                            result22=requests.get(ts,headers=he)
+                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'),False)
+                            ls.append(lo[1])
+                            return ls 
+                        elif re.search(re9,str(ww)):
+                            if so33:
+                                if str(so33[0]).find('二手')>=0:
+                                    ls[0]='二手房'
+                                    ls[5]=sslo
+                                    return ls
+                            sw=re.search(re9,str(ww)).group(1)
+                            if sslo.find(sw) >=0 or sw.find(sslo)>=0:
+                                swref=re.findall(re8,str(ww))
+                                if swref:
+                                    if swref[0].find("http")>-1:
+                                        ts=swref[0]
+                                    else:
+                                        ts="https:"+swref[0]
+                                    
+                                    result22 = requests.get(ts,headers=he)
+                                    ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'),False)
+                                    ls.append(lo[1])
+                                    return ls
     return ls
 
 
-def  readhtml(html1):
+def  readhtml(html1,t):
     
     ls=['','','','','','']
     sw=[]
     tt=True
+     
     soup=BeautifulSoup(html1,"html.parser")
     ifers=soup.select('div[class="laybox clearfix"] > div[class="bread"] ')
     if ifers:
@@ -158,10 +191,14 @@ def  readhtml(html1):
             ls[4]=','.join(sw)
         soo=  soup.select('div[class="tit"]>h1')
         if soo:
+            
             ls[5]=str(soo[0]).replace('<strong>','').replace('</strong>','').replace('</h1>','').replace('<h1>','')
-        rs3=requests.get('https:'+w3,headers=he)
-      
+        print(w3)
+        rs3=requests.get(w3,headers=he)
+
+        
         html=rs3.text.encode('ISO-8859-1').decode('gb18030','ignore')
+
         soup=BeautifulSoup(html,"html.parser")
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
         
@@ -175,7 +212,7 @@ def  readhtml(html1):
             ls[0]=stf1
         so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
         for i,soupr in enumerate(so):
-            print(soupr)
+            
             if str(soupr.string).find("装修状况")>-1:
                 str1 = so[i+1].string
                 str2=''
@@ -324,31 +361,32 @@ if __name__ == "__main__":
     t=time.time()
     #print(time.strftime("%H:%M:%S",time.localtime()))
     #lists=["恒文星尚湾","昱龙家园"]
-    fname=r"E:\S1一手房楼盘典型楼盘.xlsx"
+    
     #fname2="E:\\"+str(time.strftime("%H%M%S",time.localtime()))+".xls"
-    lists1=read_excel(fname,'20S3',3)
-    print(lists1)
-    #lists1=[["禹洲雍锦府",1]]
+      #lists1=[["禹洲雍锦府",1]]
    # print(lists1)
+
+    # test("澜庭")
+
+    fname=r"E:\S1一手房楼盘典型楼盘.xlsx"
+    lists1=read_excel(fname,'20S2',3)
+    print(lists1)
+  
     longlis=[]
     mul=Pool(6)
     qq=Manager().Queue()
     for lsd in lists1:
         mul.apply_async(runss,(lsd,qq))
-
     mul.close()
     mul.join()
         
-   
     sflist=[]
     while not qq.empty():
         sflist.append(qq.get())
-    #print(sflist)
     sflist.sort(key=lambda x: x[6])
     xlww=model_excel()
     df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
-     
     xlww.xlwingwirte(df,fname,'20S3',True,"K2")
-    #exlcelwrite(sflist,fname2)
-    #print(time.strftime("%H:%M:%S",time.localtime()))
+   
+    print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

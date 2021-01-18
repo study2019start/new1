@@ -41,7 +41,7 @@ def file_rtow(filenamep,chunkr):
     chunkcount=math.ceil(fsize/chunkr)
     print(chunkcount)
     i=0
-    filename=filenamep[0:filenamep.rfind(".")]+time.strftime("%Y%m%d%H%M%S")+filenamep[filenamep.rfind("."):]
+    filename=filenamep[:filenamep.rfind(".")]+time.strftime("%Y%m%d%H%M%S")+filenamep[filenamep.rfind("."):]
     with open(filenamep,'rb') as fr:
         with open(filename,'wb') as fw:
             while i<chunkcount:
@@ -139,11 +139,7 @@ def upload(fpath,applyNo): #applyNo 是List
            
 
             
-            
-            
- 
-
-    
+             
 
     print("---------------完成-------------")
 

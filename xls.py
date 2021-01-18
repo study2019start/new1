@@ -135,7 +135,7 @@ if __name__ == '__main__':
     p=r"F:\地价\任务"
     f1="准宗地调查表"
     bb=[]
-    r=r"F:\地价\2020-8.xls"
+    r=r"F:\地价\2020-11.xls"
     bianli(p,f1)
     bb=read_excel3(a)
     print(bb)

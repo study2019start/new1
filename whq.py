@@ -44,7 +44,7 @@ class he(object):
     def readTorF(self):
         df=pd.read_excel(self.f,hearder=None,sheet_name=0,skiprows=4,usecols="K:m")
         
-        return (df.iloc[:,1].isna().sum()>50)
+        return (df.iloc[:,1].isna().sum()>30)
           
     def readexcel(self):
         df=pd.read_excel(self.f,header=None,sheet_name=0,skiprows=4,usecols='A:I')

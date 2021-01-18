@@ -24,7 +24,7 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     ls2=['fd42_hx','fd42_lx','fd42_lc','fd42_td','fd42_y','fd42_jg']
     ls3=['fd_dx1','fd_dx2','fd_dx3','fd_dx4','fd_dx5']
     df=getlistl(dataname,us,pwd,host1,ch,mu,tablename,readexcel_r,searchlist)
-    df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 or str(x)=='上海银行' else str(x)+"股份有限公司")
+    df['fd37']=df['fd37'].apply(lambda x : x if str(x).find("股份有限公司")>-1 or str(x)=='上海银行' or str(x)=="南京银行" else str(x)+"股份有限公司")
     df['fd38']=df['fd38'].apply(lambda x:str(x)+"支行" if str(x).find("支行")<0 and  str(x).find("分行")<0 else str(x) )
     df['fd1_year']=df['fd1'].apply(lambda x: re.findall(re1,x)[0])
     df['fd1_2']=df['fd1'].apply(lambda x: re.findall(re2,x)[0])
@@ -36,7 +36,7 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
     df['fd16']=df['fd16'].apply(lambda x : '出让' if x =='' else x)
     df['fd_dz_1']=df['fd3'].apply(lambda x :fen1(x))
     df['fd_dz_2']=df['fd3'].apply(lambda x :fen2(x))
-    df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15','credentialsno','fd_dz_2','fd_dz_1']]
+    df1=df[['fd38','fd1_year','fd1_2','fd10_1','fd10_2','fd20_z','fdzq','buildingname','landfeature','fd37','district','fd3','fd16','fd18','fd21','fd4','fd1','fd20','fd15','credentialsno','fd_dz_2','fd_dz_1','fdjing']]
     df1['title']=df1['fd1'].apply(lambda  x: '预评估报告' if x[0]=='Y' else '询价报告')
     #df1['fh']=df1.apply(relfh,axis=1)
     df1['fh']=df1['fd37'].apply(lambda x : relfh(x))
@@ -78,14 +78,23 @@ def model(pathx,pathw,dataname,us,pwd,host1,ch,mu,tablename,searchlist=None):
                 rr['fd_dx5']=0
         rr.pop('credentialsno')
         if not rr.__contains__("fd_dx1"):
-            pathw1=os.path.join(pathw,r"yugu\mu\模板1.docx")
+            if rr['fd37']=="南京银行":
+                print(rr["fdjing"])
+                if rr["fdjing"]:
+
+                    rr["fdjing_1"]=zhuandaxie(int(rr["fdjing"])*10000)
+                    rr["fdjing_2"]=rr["fdjing"]
+                    print(rr['fdjing_1'])
+                pathw1=os.path.join(pathw,r"yugu\mu\模板3.docx")
+            else:
+                pathw1=os.path.join(pathw,r"yugu\mu\模板1.docx")
              #r"yugu\mu\模板1.docx"
         else:
             if not rr["fd_dx4"] ==r"/":
                 if re.match(r"^\d+(\.\d{1,5})*$",rr['fd_dx4']):
                     rr["fd20_1_2"]=int(rr["fd20"])+int(rr['fd_dx4'])
-                    rr["fd20_1_1"]=zhuandaxie(rr["fd20_1_2"])
-                    rr["fd_dx4"]=format(rr["fd_dx4"],'.2f')
+                    rr["fd20_1_1"]=zhuandaxie(rr["fd20_1_2"]*10000)
+                    rr["fd_dx4"]=format(float(rr["fd_dx4"]),'.2f')
                     rr["fd20_1_2"]=format(rr["fd20_1_2"],'.2f')
                     rr['fd3']="及".join([rr['fd3'],rr['fd_dx1']])
             pathw1=os.path.join(pathw,r"yugu\mu\模板2.docx")
@@ -159,6 +168,14 @@ def tiword(path,dic,flname):
     docxx=Document(path)
     for para in docxx.paragraphs:
         for i in range(len(para.runs)):
+            print(para.runs[i].text)
+            if  dic["fd37"]=="南京银行":
+                if para.runs[i].text.find("fd20]")>-1 :
+
+                    para.runs[i].text=para.runs[i].text.replace("fd20]",str(dic["fd20"]))
+                if para.runs[i].text.find("fdjing_1]")>-1:
+
+                    para.runs[i].text=para.runs[i].text.replace("fdjing_1]",str(dic["fdjing_1"]))
             # if para.runs[i].text.find('三、价值时点：')>-1:
             #     para.runs[i].text='三、价值时点：'+dic['fd10_1']
             # if para.runs[i].text.find('title')>-1:
@@ -171,14 +188,20 @@ def tiword(path,dic,flname):
         columns_num=len(otable.columns)
         for j in range(rows_num):
             for ll in range(columns_num):
+
                 for k,v in dic.items():
                     sp=otable.cell(j,ll).text
                     otable.cell(j,ll).text=sp.replace("["+str(k)+"]",str(v))
                 run = otable.cell(j,ll).paragraphs[0].runs
                 for rrr in run :
-                    rrr.font.name = u'仿宋_gb2312'
-                    r = rrr._element
-                    r.rPr.rFonts.set(qn('w:eastAsia'), u'仿宋_gb2312')
+                    if dic["fd37"]=="南京银行":
+                        rrr.font.name = u'宋体'
+                        r = rrr._element
+                        r.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
+                    else:
+                        rrr.font.name = u'仿宋_gb2312'
+                        r = rrr._element
+                        r.rPr.rFonts.set(qn('w:eastAsia'), u'仿宋_gb2312')
                 otable.cell(j,ll).paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     docxx.save(flpathsave)
 
@@ -307,7 +330,7 @@ if __name__ == "__main__":
     ch="utf8"
     mu=["fd1"]
     tablename="reports"
-    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno"]
+    searchlist=["district","fd3","fd1","buildingname","fdzq","fd4","fd18","fd15","fd20","fd21","fd10","fd37","fd38","fd16", "landfeature","credentialsno","fdjing"]
     model(pp,p2,data_n,us,pwd,host,ch,mu,tablename,searchlist)
     
 

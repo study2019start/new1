@@ -4,6 +4,8 @@ import time
 import os
 import shutil
 import datetime
+import configparser
+
 class model_excel(object):
     @classmethod
     def xlwingcreate(self,df,filename,rangestart='A1'):
@@ -59,7 +61,10 @@ class model_excel(object):
             sh=wb.sheets[0]
         
         sh.range(rangestart).value=df.values
-        if st2.find('信衡') > -1:
+        mi=configparser.ConfigParser()
+        mi.readfp(open(r'in.ini'))
+        key1=mi.get('key','name')
+        if st2.find(key1) > -1:
             hang=df.shape[0]+4
             sh.range('L5:L'+str(hang)).NumberFormatLocal = "@"
         wb.save()

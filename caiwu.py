@@ -12,7 +12,7 @@ class update(object):
         self.lis=[]
 
     def conn(self):
-        cn=mysql_model(self.d,"user","7940","192.168.1.3")#",user","7940","192.168.1.3"
+        cn=mysql_model(self.d,"user","7940","192.168.1.3")#",user","7940","192.168.1.3"   "root","111","localhost"
         redata=self.readexcel()
         listp1=[  x[self.wh[0]] for  x in redata ]
         resp=[]
@@ -98,7 +98,7 @@ class update(object):
 
 if __name__ == "__main__":
     t=time.time()
-    fileurl=r"E:\王昱鹏0930.xlsx"
+    fileurl=r"D:\王昱鹏1231.xlsx"
     dan="im2006"
     whl=['fd1','fd33','fd34','checkno','fd35','fd36']
     up=update(dan,fileurl,whl)
