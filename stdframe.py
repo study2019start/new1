@@ -13,7 +13,7 @@ from excel import model_excel
  
 he={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36','content-encoding':'gzip'}
 head={'content-type': 'application/x-www-form-urlencoded; charset=UTF-8','user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
-re1=r"[\u4e00-\u9fa5]+"
+re1=r"[^\u4e00-\u9fa5]*([\u4e00-\u9fa5]+)[^\u4e00-\u9fa5]*"
 re2=r"(\d{4})年(\d{1,2})月(\d{1,2})日"
 re3=r".*([^\d{4}-]\d{2,3}-\d{1,4})+.*"
 re4=r".*[\u4e00-\u9fa5](\d{2,3}-\d{1,4})[㎡|平].*"
@@ -26,6 +26,7 @@ re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
 re11=r'>(\w\W)<'
 re12=r'.*([\u4e00-\u9fa5]\d+\.*\d*.*[\u4e00-\u9fa5]*\/*[\u4e00-\u9fa5]*).*'
 re13=r'^http.+\.com/$'
+re14=r'([\w\W]+)\(([\u4e00-\u9fa5]+)\)$'
 
 class firstsou(object):
     def __init__(self,path,ncol,shname):
@@ -92,17 +93,25 @@ def searchbegin(lo):
     ls=['','','','','','',-1]
     slo=[]
     ls[6] = lo[1]
+    
     if str(lo[0]).find(",") > 0:
         slo = [x for x in lo[0].split(',')]
     else:
         slo.append(lo[0])
     for sslo in slo:
+        qi=None
+        if re.match(re14,sslo):
+            re14_f=re.search(re14,sslo)
+            sslo=re14_f[1]
+            if re14_f[2].find("期")>-1 :
+                qi=re14_f[2]
 
         rk,vk=test(sslo)
+        print(vk)
         if vk :
             result2=requests.get(rk,headers=he)
             
-            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),True)
+            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),True,qi)
             ls.append(lo[1])
             return ls
         else:
@@ -115,7 +124,7 @@ def searchbegin(lo):
                 url1='https:'+sp[1]+ '?xf_source='+sslo
                 
                 result2=requests.get(url1,headers=he)
-                ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),False)
+                ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),False,qi)
                 ls.append(lo[1])
                 return ls
             else:
@@ -140,7 +149,7 @@ def searchbegin(lo):
                             else:
                                 ts="https:"+swref[0]
                             result22=requests.get(ts,headers=he)
-                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'),False)
+                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'),False,qi)
                             ls.append(lo[1])
                             return ls 
                         elif re.search(re9,str(ww)):
@@ -159,13 +168,13 @@ def searchbegin(lo):
                                         ts="https:"+swref[0]
                                     
                                     result22 = requests.get(ts,headers=he)
-                                    ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'),False)
+                                    ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'),False,qi)
                                     ls.append(lo[1])
                                     return ls
     return ls
 
 
-def  readhtml(html1,t):
+def  readhtml(html1,t,qi=None):
     
     ls=['','','','','','']
     sw=[]
@@ -193,7 +202,7 @@ def  readhtml(html1,t):
         if soo:
             
             ls[5]=str(soo[0]).replace('<strong>','').replace('</strong>','').replace('</h1>','').replace('<h1>','')
-        print(w3)
+        
         rs3=requests.get(w3,headers=he)
 
         
@@ -210,41 +219,50 @@ def  readhtml(html1,t):
             #else:
             stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
             ls[0]=stf1
-        so=soup.select('div[class="main-item"] > ul[class="list clearfix"] > li >div')
+        so=soup.select('li > div')
+        
         for i,soupr in enumerate(so):
             
-            if str(soupr.string).find("装修状况")>-1:
-                str1 = so[i+1].string
+            if str(soupr.string).find("装修")>-1 and ls[2] =="":
+                str1 = so[i+1].text
                 str2=''
-                res1 = re.findall(re1,str(str1))
+                res1 = re.search(re1,str(str1))
                 if res1:
-                    str2=res1[0]
+                    str2=res1[1]
                 ls[2]=str2
-               
                 #replace('	','').replace('		',''))
             elif str(soupr.string).find("开盘时间：")>-1:
                 str2=''
+                qi_tf=False
                 str1= str(so[i+1])
-                if str1.find('预计') >-1 and  str1.find("加推")==-1:
-                    str2=str1
+                if qi :
+                    if str1.find(qi)>-1:
+                        qi_tf=True
                 else:
-                    res1=re.findall(re2,str1)
-                    if  res1:
-                        if len(res1[0])>2:
-                            if str1.find("加推")>-1:
-                                str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]+"加推"
-                            else:
-                                str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]
+                    qi_tf=True
+                
+                if qi_tf:
+                    if str1.find('预计') >-1 and  str1.find("加推")==-1:
+                        str2=str1
                     else:
-                        res222=re.findall(re10,str1)
-                        if res222:
-                            if str1.find("加推")>-1:
-                                str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]+"加推"
-                            else:
-                                str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]
-                        elif str1.find("加推")>-1:
-                            str2=str1
+                        res1=re.findall(re2,str1)
+                        if  res1:
+                            if len(res1[0])>2:
+                                if str1.find("加推")>-1:
+                                    str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]+"加推"
+                                else:
+                                    str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]
+                        else:
+                            res222=re.findall(re10,str1)
+                            if res222:
+                                if str1.find("加推")>-1:
+                                    str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]+"加推"
+                                else:
+                                    str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]
+                            elif str1.find("加推")>-1:
+                                str2=str1
                 ls[1]=str2
+                break
         so=soup.select('div[class="main-item"] > div[class="main-table"] > div[class="table-part"] > table >tr >td')
         for sof in so:
             re41=re.search(re4,str(sof))
@@ -259,7 +277,19 @@ def  readhtml(html1,t):
         if tt:
             if ls[4]!='':
                 ls[2]=ls[2]+gb(ls[4])
-                
+        
+        if ls[1]=="" and qi !=None:
+            so=soup.find_all('td')
+            for sslo1 in so: 
+                if sslo1.text.find(qi) >-1 and sslo1.text.find("开盘"):
+                    ls[1]=sslo1
+                    break 
+
+
+
+
+
+    print(ls[1])          
     return ls
 
 def maopao(lid):
@@ -368,12 +398,12 @@ if __name__ == "__main__":
 
     # test("澜庭")
 
-    fname=r"E:\S1一手房楼盘典型楼盘.xlsx"
-    lists1=read_excel(fname,'20S2',3)
+    fname=r"E:\S3一手房典型楼盘(2)151849.xlsx"
+    lists1=read_excel(fname,'Sheet1',3)
     print(lists1)
   
     longlis=[]
-    mul=Pool(6)
+    mul=Pool(3)
     qq=Manager().Queue()
     for lsd in lists1:
         mul.apply_async(runss,(lsd,qq))
@@ -386,7 +416,7 @@ if __name__ == "__main__":
     sflist.sort(key=lambda x: x[6])
     xlww=model_excel()
     df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
-    xlww.xlwingwirte(df,fname,'20S3',True,"K2")
+    #xlww.xlwingwirte(df,fname,'Sheet1',True,"K2")
    
     print(time.strftime("%H:%M:%S",time.localtime()))
     print(time.time()-t)

@@ -36,15 +36,12 @@ class Run():
                 if ms_l['ybgxmbh'].find("XX") <0:
                     if ms_l['ybgxmbh'].find("G")>-1:#是个贷报告
                         whe_dict['fd1']=ms_l['ybgxmbh'][7:18]
-                        whe_dict['person']="柴书钦"
-                        whe_dict['depperson']="朱留青"
+                        whe_dict['person']="朱留青"
+                        whe_dict['depperson']="柴书钦"
                         whe_dict['distrperson']="朱留青"
-
                     if ms_l['pgmd']=='房地产抵押估价':
                         whe_dict['fd11']='抵押价值评估'
                     
-                    
-
                     whe_dict['category']=ms_l['ybgxmbh'][0]
                     
                     search["fd1"]=whe_dict['fd1']
@@ -104,7 +101,6 @@ class Run():
                         fd31+=1
                     elif whe_dict["district"]=="南汇区" or whe_dict["district"]=="奉贤区" or whe_dict["district"]=="嘉定区" or whe_dict["district"]=="松江区" or whe_dict["district"]=="青浦区" :
                         fd31+=0.5
-                        
 
                     whe_dict['fd31']=fd31
                     fd31b=0.5
@@ -136,31 +132,33 @@ class Run():
 
 if __name__ == "__main__":
     d1=datetime.datetime.now()
-    ddt1=datetime.timedelta(minutes=5410)
+    ddt1=datetime.timedelta(minutes=4320)
     ddt2=datetime.timedelta(minutes=20)
     d2=d1-ddt1
     d3=d1+ddt2
-    m_h="192.168.1.8"
-    m_user="sa"
-    m_pwd="ldpjwy"
-    m_d="gjgl_xh"
-    m_port=1433
-    dd1=d2.strftime("%Y-%m-%d %H:%M:%S")
-    dd2=d3.strftime("%Y-%m-%d %H:%M:%S")
-    ms_table=["bdgl"]
+    print(d2)
+    print(d3)
+    # m_h="192.168.1.8"
+    # m_user="sa"
+    # m_pwd="ldpjwy"
+    # m_d="gjgl_xh"
+    # m_port=1433
+    # dd1=d2.strftime("%Y-%m-%d %H:%M:%S")
+    # dd2=d3.strftime("%Y-%m-%d %H:%M:%S")
+    # ms_table=["bdgl"]
     
-    mslist={'wcsj_ge':dd1,'wcsj_le':dd2}
-    selectlist=['ybgxmbh','xq','xmmc','lpmc','lxry','qprq','pgsd','jsrq','pgff','jzmj','fczjz','fdc_dj','qzgjs','zgjs','wtr','xmly','zdkr','bgnr','qsxz','tdqbfs','pgmd']
+    # mslist={'wcsj_ge':dd1,'wcsj_le':dd2}
+    # selectlist=['ybgxmbh','xq','xmmc','lpmc','lxry','qprq','pgsd','jsrq','pgff','jzmj','fczjz','fdc_dj','qzgjs','zgjs','wtr','xmly','zdkr','bgnr','qsxz','tdqbfs','pgmd']
 
-    mysql_datname="im2006"
-    mysql_us="root"
-    mysql_pwd="111"
-    mysql_host="localhost"
-    mstomysql=Run(m_h,m_user,m_pwd,m_d,m_port,ms_table,selectlist,mslist,mysql_datname,mysql_us,mysql_pwd,mysql_host)
-    ms_result_list=mstomysql.mssql_select()
+    # mysql_datname="im2006"
+    # mysql_us="root"
+    # mysql_pwd="111"
+    # mysql_host="localhost"
+    # mstomysql=Run(m_h,m_user,m_pwd,m_d,m_port,ms_table,selectlist,mslist,mysql_datname,mysql_us,mysql_pwd,mysql_host)
+    # ms_result_list=mstomysql.mssql_select()
      
-    mysql_table="reports"
-    mstomysql.inser_or_update_mysql(ms_result_list,mysql_table)
+    # mysql_table="reports"
+    # mstomysql.inser_or_update_mysql(ms_result_list,mysql_table)
 
 
     

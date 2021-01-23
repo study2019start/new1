@@ -10,6 +10,43 @@ class mysql_model(object):
         self.n=num
         self.name=name
 
+
+    def update(self,whe,searchwhere,tablename):# 更新内容字典列表，指定的条件列表，表名
+        value = []
+        dbb=self.db1.connection()
+        cur = dbb.cursor()
+        s = []
+        s2= []
+        wherep=""
+        s1 = "%s"
+        if whe :
+            for k,v in whe[0].items():
+                s.append(k+"="+s1)
+            if searchwhere[0]:
+                wherep=" where "
+                for ki,vi in searchwhere[0].items():
+                    s2.append(ki+"="+s1)
+            for ii,rs in enumerate(whe):
+                value1=()
+                for ki,vi in rs.items():
+                    value1=value1+(vi,)
+                if searchwhere[ii]:
+                    for kii,vii in searchwhere[ii].items():
+                        value1=value1+(vii,)
+                value.append(value1)
+                 
+
+        st ="update %s  set %s  " % (tablename,','.join(s))
+        
+        st= st +wherep+" %s " % ("and".join(s2))
+ 
+        req = cur.executemany(st,value)
+        dbb.commit()
+        cur.close()
+        dbb.close
+        return req
+
+
     def manyinsert(self,list1,list2,tablename): #插入字段列表   插入的值的值是列表  多个值一个列表  表名
         field = []
         s = ()
@@ -43,7 +80,36 @@ class mysql_model(object):
         dbb.close()
         return req
     
- 
+
+    def read_all_l(self):
+        strf="select abs(right(fd1,char_length(fd1)-4)) as mx,id,fd1 from reports where fd1 like '%临朱留清%' order by mx"
+        dbb = self.db1.connection()
+        cur=dbb.cursor()
+        
+        i=cur.execute(strf)
+        req = cur.fetchmany(i)
+        dbb.commit()
+        cur.close()
+        dbb.close()
+        return req
+
+    def pai(self):
+        p=self.read_all_l()
+        f=len(p)+1
+        ls1=[]
+        ls2=[]
+
+        for i in range(1,f):
+            dic1={}
+            dic2={}
+            dic1['id']=p[i-1][1]
+            dic2['fd1']="临朱留清"+str(i)
+            ls1.append(dic1)
+            ls2.append(dic2)
+        self.update(ls2,ls1,"reports")
+
+
+
 
     def quhao(self):
         f=self.read_Max()
@@ -69,7 +135,10 @@ def is_number_zheng(n):
     return rs
 if __name__ == "__main__":
     t=mysql_model("im2006",10,"马晓迎")
-    t.quhao()
+    t.pai()
+    p=t.read_all_l()
+    print(len(p))
+    print(p)
      
    
     

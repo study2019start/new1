@@ -284,6 +284,7 @@ class mysql_model(object):
         return info
 
 if __name__ == "__main__":
-    my=mysql_model("im2006",us='user',pwd="7940",host1="192.168.1.3",ch="utf8")
-    fp=my.select([{"fd1":"Y2020-01446"}],"reports",None,None,True)
-    print(fp)
+    pass
+    #my=mysql_model("im2006",us='user',pwd="7940",host1="192.168.1.3",ch="utf8")
+    #fp=my.select([{"fd1":"Y2020-01446"}],"reports",None,None,True)
+    #print(fp)
