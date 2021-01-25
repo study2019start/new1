@@ -2,6 +2,7 @@ import os
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import time
 import datetime
+import fitz
 # 使用os模块的walk函数，搜索出指定目录下的全部PDF文件
 # 获取同一目录下的所有PDF文件的绝对路径
 def getFileName(filedir):
@@ -12,6 +13,26 @@ def getFileName(filedir):
                  if str(filespath).endswith('pdf')
                  ]
     return file_list if file_list else []
+
+def PdftoImage(file_path):
+    if os.path.exists(file_path):
+        file_path_1=file_path[:file_path.rfind(".")]
+        pdf=fitz.open(file_path)
+        if pdf.pageCount>2:
+            png_name=file_path_1+".png"
+            
+            if os.path.exists(png_name):
+                os.remove(png_name)
+            rotate = int(0)
+        # 每个尺寸的缩放系数为1.3，这将为我们生成分辨率提高2.6的图像。
+        # 此处若是不做设置，默认图片大小为：792X612, dpi=96
+            zoom_x = 1.33333333  # (1.33333333-->1056x816)   (2-->1584x1224)
+            zoom_y = 1.33333333
+            mat = fitz.Matrix(zoom_x, zoom_y).preRotate(rotate)
+            png=pdf[2].getPixmap(matrix=mat, alpha=False)
+            png.writePNG(png_name)
+
+
 
 # 合并同一目录下的所有PDF文件
 def MergePDF(filepath,fs, outfile):
@@ -50,14 +71,18 @@ def MergePDF(filepath,fs, outfile):
 if __name__ == '__main__': 
     time1 = time.time()
     file_dir =  os.path.join(os.getcwd(),"原始文件")
+    f=os.path.join(os.getcwd(),"G2019-02270.pdf")
     print(file_dir)
-    file_successfully= os.path.join(os.getcwd(),"完成") # 存放PDF的件夹
     if os.path.exists(file_dir):
-        pass
-    else:
-        os.mkdir(file_dir)
-    outfile = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'))+".pdf"
-    #str(time.strftime("%Y%m%d%H%M%S",time.localtime()))+ ".pdf"     # 输出的PDF文件的名称
-    MergePDF(file_dir,file_successfully, outfile)
-    time2 = time.time()
-    print('总共耗时：%s s.' %(time2 - time1))
+        file_successfully= os.path.join(os.getcwd(),"完成") # 存放PDF的件夹
+        if os.path.exists(file_dir):
+            pass
+        else:
+            os.mkdir(file_dir)
+        outfile = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'))+".pdf"
+        #str(time.strftime("%Y%m%d%H%M%S",time.localtime()))+ ".pdf"     # 输出的PDF文件的名称
+        MergePDF(file_dir,file_successfully, outfile)
+        time2 = time.time()
+        print('总共耗时：%s s.' %(time2 - time1))
+    PdftoImage(f)
+    
