@@ -3,6 +3,7 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 import time
 import datetime
 import fitz
+from cv2 import cv2 
 # 使用os模块的walk函数，搜索出指定目录下的全部PDF文件
 # 获取同一目录下的所有PDF文件的绝对路径
 def getFileName(filedir):
@@ -20,9 +21,11 @@ def PdftoImage(file_path):
         pdf=fitz.open(file_path)
         if pdf.pageCount>2:
             png_name=file_path_1+".png"
-            
+            png_name2=file_path_1+"_jie.png"
             if os.path.exists(png_name):
                 os.remove(png_name)
+            if os.path.exists(png_name2):
+                os.remove(png_name2)
             rotate = int(0)
         # 每个尺寸的缩放系数为1.3，这将为我们生成分辨率提高2.6的图像。
         # 此处若是不做设置，默认图片大小为：792X612, dpi=96
@@ -31,6 +34,13 @@ def PdftoImage(file_path):
             mat = fitz.Matrix(zoom_x, zoom_y).preRotate(rotate)
             png=pdf[2].getPixmap(matrix=mat, alpha=False)
             png.writePNG(png_name)
+            pngg=cv2.imread(png_name)
+            kuan=pngg.shape[0]
+            chang=int(pngg.shape[1]*0.3)
+            print(pngg.shape)
+            cropped=pngg[0:chang,0:kuan]
+            cv2.imwrite(png_name2,cropped)
+            return png_name,png_name2
 
 
 
@@ -84,5 +94,5 @@ if __name__ == '__main__':
         MergePDF(file_dir,file_successfully, outfile)
         time2 = time.time()
         print('总共耗时：%s s.' %(time2 - time1))
-    PdftoImage(f)
+    pn_1,pn_2=PdftoImage(f)
     
