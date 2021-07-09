@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 import os
 import  time
+from excel import model_excel
 class update(object):
     def __init__(self,dataname,filename,wherelist):
         self.d=dataname
@@ -24,15 +25,15 @@ class update(object):
         #     pp=cn.select({self.wh[0]:flp[self.wh[0]]},"reports",self.wh)
         #     print(pp)
         #     resp.append(pp)
-        flienew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%H%M%S")+".xlsx")
+        filenew=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%H%M%S")+".xlsx")
         print(inlist)
         resp=cn.selectmul([self.wh[0]],'reports',inlist,self.wh)
         df2=pd.DataFrame(resp,columns=['fd1','fd33_2','fd34_2','ck_2','fd35_2','fd36_2'])
         
         df2['fd33_2'].fillna(0,inplace=True)
         df2['ck_2'].fillna("-1",inplace=True)
-        df3=df2.loc[(df2["fd33_2"]>0 )| ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))]
-        df3.to_excel(flienew)
+        df3=df2.loc[(df2["fd33_2"]>0 ) | ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))]
+        df3.to_excel(filenew)
         flienew2=os.path.join(os.getcwd(),datetime.now().strftime("%Y%m%d-%H%M%S")+".xlsx")
         df2.to_excel(flienew2)
         #df2['count']=df2['fd33_2'].apply(lambda x:  1 if x>0  else  0)
@@ -40,7 +41,7 @@ class update(object):
 
         #df2.fillna("",inplace=True)
         df=pd.merge(df1,df2,how='left',on='fd1')
-        df.drop(df[(df2["fd33_2"]>0) | ((df2["ck_2"] !="-1") & (df2["ck_2"] !=""))].index,inplace=True)
+        df.drop(df[(df["fd33_2"]>0) | ((df["ck_2"] !="-1") & (df["ck_2"] !=""))].index,inplace=True)
         print(df.shape[0])
         #df['fd33']=df['fd33']+df['fd33_2']
         #df['fd34']=df['fd34']+df['fd34_2']
@@ -98,9 +99,24 @@ class update(object):
 
 if __name__ == "__main__":
     t=time.time()
-    fileurl=r"D:\王昱鹏1231.xlsx"
+    fileurl=r"E:\王昱鹏20210408.xlsx"
     dan="im2006"
     whl=['fd1','fd33','fd34','checkno','fd35','fd36']
+
+   # ****************************
+    # df_m=model_excel()
+    # df1=df_m.readexcel(fileurl,0,None,1,"A")
+    # df1.dropna(axis=0,inplace=True)
+    # df11=df1.iloc[:,0].tolist()
+    # print(df11)
+    # print(len(df11))
+    # cn=mysql_model("im2006","user","7940","192.168.1.3")
+    # d111=cn.selectmul(["fd1"],"reports",[df11],whl,True)
+    # print(d111)
+    # dfr=pd.DataFrame(d111)
+    # df_m.xlwingcreate(dfr,r"e:\sl.xlsx")
+ # ****************************
+
     up=update(dan,fileurl,whl)
     up.conn()
     print((time.time()-t)/60)

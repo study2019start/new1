@@ -20,7 +20,7 @@ re4=r".*[\u4e00-\u9fa5](\d{2,3}-\d{1,4})[㎡|平].*"
 re5=r".*面(\d{2,4}㎡)+.*"
 re6=r"<em>+[^1-9]*(\d{3,8})[\w\W]+</em>"
 re7=r"<span+.*>(.*)</span>"
-re8=r'href=\"(.*\.fang\.com|.*\.fang\.com\/\d{1,5})\/\"'
+re8=r'href=\"(.*\.fang\.com\/.*\.htm)\"'
 re9=r'<a.*>(.*)</a>'
 re10=r"(\d{4})-(\d{1,2})-(\d{1,2})"
 re11=r'>(\w\W)<'
@@ -90,7 +90,7 @@ def searchbegin(lo):
     dd={}
     dd['city']='上海'
     url='https://sh.newhouse.fang.com/house/ajaxrequest/search_keyword_submit.php?t='+rand()
-    ls=['','','','','','',-1]
+    ls=['','','','','','',-1,""]
     slo=[]
     ls[6] = lo[1]
     
@@ -107,12 +107,14 @@ def searchbegin(lo):
                 qi=re14_f[2]
 
         rk,vk=test(sslo)
-        print(vk)
+        
         if vk :
             result2=requests.get(rk,headers=he)
             
-            ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),True,qi)
+            result2.encoding=result2.apparent_encoding
+            ls=readhtml(result2.text,True,qi)
             ls.append(lo[1])
+            print(ls)
             return ls
         else:
             dd['keyword'] = sslo
@@ -124,7 +126,8 @@ def searchbegin(lo):
                 url1='https:'+sp[1]+ '?xf_source='+sslo
                 
                 result2=requests.get(url1,headers=he)
-                ls=readhtml(result2.text.encode('ISO-8859-1').decode('gb18030','ignore'),False,qi)
+                result2.encoding=result2.apparent_encoding
+                ls=readhtml(result2.text,False,qi)
                 ls.append(lo[1])
                 return ls
             else:
@@ -135,22 +138,28 @@ def searchbegin(lo):
                 ress=requests.post("https://sh.newhouse.fang.com/house/ajaxrequest/arealist.php?t="+str(rand()),data=d2,headers=he)
                 if len(ress.text)>0:
                     ress2=requests.get("https://sh.newhouse.fang.com/house/s/a9"+ress.text+"/?xl_source="+sslo)
-                    html1=ress2.text.encode('ISO-8859-1').decode('gb18030','ignore')
+                    ress2.encoding=ress2.apparent_encoding
+                    html1=ress2.text
                     so2=BeautifulSoup(html1,"html.parser")
                     ww3=so2.select('div[class="nl_con clearfix"] > ul >li>div>div>div>div[class="nlcd_name"]')
                     so33=so2.select('div[class="house_value clearfix"]>div[class="fl mr10"]')
                     for ww in ww3:
                         sw=str(ww)
+                         
                         #if sslo.find(sw) >=0 or sw.find(sslo)>=0:
                         swref=re.findall(re8,sw)
+                        print(swref)
                         if swref:
                             if swref[0].find("http")>-1:
                                 ts=swref[0]
                             else:
                                 ts="https:"+swref[0]
                             result22=requests.get(ts,headers=he)
-                            ls=readhtml(result22.text.encode('ISO-8859-1').decode('gb18030','ignore'),False,qi)
+                            result22.encoding=result22.apparent_encoding
+                            
+                            ls=readhtml(result22.text,False,qi)
                             ls.append(lo[1])
+                            print(ls)
                             return ls 
                         elif re.search(re9,str(ww)):
                             if so33:
@@ -168,7 +177,8 @@ def searchbegin(lo):
                                         ts="https:"+swref[0]
                                     
                                     result22 = requests.get(ts,headers=he)
-                                    ls=readhtml(result22.text.encode(result22.encoding,'ignore').decode('gb18030','ignore'),False,qi)
+                                    result22.encoding=result22.apparent_encoding
+                                    ls=readhtml(result22.text,False,qi)
                                     ls.append(lo[1])
                                     return ls
     return ls
@@ -205,8 +215,8 @@ def  readhtml(html1,t,qi=None):
         
         rs3=requests.get(w3,headers=he)
 
-        
-        html=rs3.text.encode('ISO-8859-1').decode('gb18030','ignore')
+        rs3.encoding=rs3.apparent_encoding
+        html=rs3.text
 
         soup=BeautifulSoup(html,"html.parser")
         so1 = soup.select('div[class="main-item"] > div[class="main-info clearfix"] > div[class="main-info-price"] > div[class="pricetd"] ')
@@ -217,7 +227,7 @@ def  readhtml(html1,t,qi=None):
             #if so1f :
                 #stf1=so1f[0].string
             #else:
-            stf1=str(so1[0]).replace("<p>","").replace("</p>","").replace("em","").replace("</em>","").replace(r'<div class="pricetd">','').replace("</div>","").replace("<b>","").replace("</b>","").replace("<>","").replace(r"</>","").replace("\r\n","").replace(r"\n","")
+            stf1=str(so1).replace("<p>","").replace(r"</p>","").replace("em","").replace(r"</em>","").replace(r'<div class="pricetd">','').replace(r"</div>","").replace(r"<b>","").replace(r"</b>","").replace(r"<>","").replace(r"</>","").replace(r"\r\n","").replace(r"\n","")
             ls[0]=stf1
         so=soup.select('li > div')
         
@@ -231,36 +241,28 @@ def  readhtml(html1,t,qi=None):
                     str2=res1[1]
                 ls[2]=str2
                 #replace('	','').replace('		',''))
-            elif str(soupr.string).find("开盘时间：")>-1:
-                str2=''
-                qi_tf=False
+            elif str(soupr.string).find("开盘")>-1:
+                str2=""
                 str1= str(so[i+1])
-                if qi :
-                    if str1.find(qi)>-1:
-                        qi_tf=True
+                if str1.find('预计') >-1 and  str1.find("加推")==-1:
+                    str2=str1
                 else:
-                    qi_tf=True
-                
-                if qi_tf:
-                    if str1.find('预计') >-1 and  str1.find("加推")==-1:
-                        str2=str1
+                    res1=re.findall(re2,str1)
+                    if  res1:
+                        if len(res1[0])>2:
+                            if str1.find("加推")>-1:
+                                str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]+"加推"
+                            else:
+                                str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]
                     else:
-                        res1=re.findall(re2,str1)
-                        if  res1:
-                            if len(res1[0])>2:
-                                if str1.find("加推")>-1:
-                                    str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]+"加推"
-                                else:
-                                    str2=res1[0][0]+"-"+res1[0][1]+"-"+res1[0][2]
-                        else:
-                            res222=re.findall(re10,str1)
-                            if res222:
-                                if str1.find("加推")>-1:
-                                    str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]+"加推"
-                                else:
-                                    str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]
-                            elif str1.find("加推")>-1:
-                                str2=str1
+                        res222=re.findall(re10,str1)
+                        if res222:
+                            if str1.find("加推")>-1:
+                                str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]+"加推"
+                            else:
+                                str2=res222[0][0]+"-"+res222[0][1]+"-"+res222[0][2]
+                        elif str1.find("加推")>-1:
+                            str2=str1
                 ls[1]=str2
                 break
         so=soup.select('div[class="main-item"] > div[class="main-table"] > div[class="table-part"] > table >tr >td')
@@ -278,18 +280,18 @@ def  readhtml(html1,t,qi=None):
             if ls[4]!='':
                 ls[2]=ls[2]+gb(ls[4])
         
-        if ls[1]=="" and qi !=None:
-            so=soup.find_all('td')
-            for sslo1 in so: 
-                if sslo1.text.find(qi) >-1 and sslo1.text.find("开盘"):
-                    ls[1]=sslo1
-                    break 
+        
+        so=soup.find_all('tr')
+        for sslo1 in so: 
+            if  str(sslo1).find("开盘"):
+                ls[7]=ls[7]+".."+str(sslo1)
+                break 
 
 
 
 
 
-    print(ls[1])          
+             
     return ls
 
 def maopao(lid):
@@ -398,25 +400,28 @@ if __name__ == "__main__":
 
     # test("澜庭")
 
-    fname=r"E:\S3一手房典型楼盘(2)151849.xlsx"
+    fname=r"E:\414ww.xlsx"
     lists1=read_excel(fname,'Sheet1',3)
     print(lists1)
   
     longlis=[]
-    mul=Pool(3)
+    mul=Pool(1)
+    sflist=[]
     qq=Manager().Queue()
     for lsd in lists1:
         mul.apply_async(runss,(lsd,qq))
+        #sflist.append(searchbegin(lsd))
     mul.close()
     mul.join()
         
-    sflist=[]
+    
     while not qq.empty():
         sflist.append(qq.get())
     sflist.sort(key=lambda x: x[6])
+    print(sflist)
     xlww=model_excel()
     df=pd.DataFrame(sflist,columns=['售价','开盘时间','主力面积','信息','信息2','名称','序号'])
-    #xlww.xlwingwirte(df,fname,'Sheet1',True,"K2")
+    #xlww.xlwingwirte(df,fname,'21S1',True,"K2")
    
     print(time.strftime("%H:%M:%S",time.localtime()))
-    print(time.time()-t)
+    print((time.time()-t)/60)

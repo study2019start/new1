@@ -16,13 +16,14 @@ def  print1(fd1,fd2,fd3,source,target,namelist,fen=30): #总表路径 保存路�
     sumfen=math.ceil(tablerowscount/fen)
     
     for i in range(0,sumfen):
-        m1=i*fen+3         #起始为第三行时候
-        na1=str(sheets[namelist+str(m1)].value)
-        if (i+1)*fen+2<=rows:
-            m2=(i+1)*fen+2
+        m1=i*fen+3         #m1表示起始为第三行时候
+        na1=str(sheets[namelist+str(m1)].value) if  sheets[namelist+str(m1)].value else ''
+        fen_row=(i+1)*fen+2 #每页的最后一条在总表的位置 +2表示从第三行开始算
+        if fen_row<=rows:
+            m2=fen_row
         else:
             m2=rows
-        na2=str(sheets[namelist+str(m2)].value)
+        na2=str(sheets[namelist+str(m2)].value) if  sheets[namelist+str(m2)].value else ''
         fd2p=os.path.join(fd2,na1+'-'+na2+'.xlsx')
         if os.path.isfile(fd2p):
             tfd2p=fd2p

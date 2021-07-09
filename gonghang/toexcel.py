@@ -14,10 +14,10 @@ from multiprocessing import Process,Queue,Lock,Pool,Manager
 import re
 shname="shapp.housepledge.xinheng"
 
-def exlcelwrite(a, filename):
+def exlcelwrite(a, filename,c=0):
     book = xlwt.Workbook()            #创建excel对象
     sheet = book.add_sheet('sheet1')  #添加一个表
-    c = 0  
+     
     for d in a: #取出data中的每一个元组存到表格的每一行
         for index in range(len(d)):   #将每一个元组中的每一个单元存到每一列
             sheet.write(c,index,d[index])
@@ -73,69 +73,73 @@ def bianli(path,find):
 
 
 
-def upload(fpath,applyNo): #applyNo 是List
+def upload(fpath,applyNon,applyno_file_path,lose_file=[]): #applyNo 是List
     sql=sql_server("192.168.1.8","sa","ldpjwy","gjgl_xh","1433")
     sql2=sql_server("192.168.1.8","sa","ldpjwy","icbc_api","1433")
-    result2=sql2.select(["dbo.icbcapi_assessment"],{"applyNo_in":applyNo},None) #先去上传的查看是否上传过
-    result=sql.select(["dbo.bdgl"],{"zbgh_in":applyNo},['zgjs','zbgh','zl','jzmj','fdc_dj','fczjz','zcs','szc','fwlx','ybgxmbh'])
+    for ia,applyNo in enumerate(applyNon):
+        result2=sql2.select(["dbo.icbcapi_assessment"],{"reportId":applyNo},None) #先去上传的查看是否上传过
+        result=sql.select(["dbo.bdgl"],{"ybgxmbh":applyNo},['zgjs','zbgh','zl','jzmj','fdc_dj','fczjz','zcs','szc','fwlx','ybgxmbh'])
 
-    mulupdata=[]
-    fp=[]
+        mulupdata=[]
+        fp=[]
 
-    inset=[]  #insert1 表示要插入 update1表示更新
-    if  result:
-        for r1 in result :
+        inset=[]  #insert1 表示要插入 update1表示更新
+        if  result:
             insertt=True
-            for ii,lsv in enumerate(result2):
-                if lsv["applyNo"]==r1["zbgh"]:
-                    if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh']:
-                        lsv["emplName"]=r1["zgjs"]
-                        mulupdata.append(lsv)
-                        fp.append(os.path.join(fpath,lsv['applyNo']+".pdf"))
-                        inset.append("update1")
-                        insertt=False
-                        break
-    #del sql
-    #del sql2
-            if insertt:
-                
-                    if r1['zgjs'] and r1['zbgh'] and  r1['jzmj'] and r1['fdc_dj'] and r1['fczjz']   and r1['fwlx'] and r1['ybgxmbh'] :
-                        updata={}
-                        updata["corpId"]="ASS00113"
-                        updata["emplName"]=r1['zgjs']
-                        updata["applyNo"]=r1['zbgh']
-                        updata['assessAddress']=r1['zl']
-                        updata['assessArea']=float(r1['jzmj'])
-                        updata['assessUnitPrice']=int(r1['fdc_dj'])
-                        updata['assessTotalPrice']=int(r1['fczjz'])*10000
-                        updata['totalFloor']=int(r1['zcs']) if r1['zcs']  else 0
-                        updata['floor']=int(r1['szc']) if r1['szc']  else 0
-                        updata['orientation']='朝南'
-                        updata['houseType']=r1['fwlx']
-                        updata['schoolHouse']="0"
-                        updata['bronzeMedal']="0"
-                        updata['assessStatus']="6"
-                        updata['assessNo']=r1['ybgxmbh']
-                        #updata['fileUnifiedNo']=fileuid
-                        updata['remarks']=""
-                        mulupdata.append(updata)
-                        #ups=updata.copy()
-                        #ups.pop('emplName')
-                        #ups.pop('remarks')
-                        #ups['fileUnifiedNo']=fileuid
-                        fp.append(os.path.join(fpath,r1['zbgh']+".pdf"))
-                        inset.append("insert1")
+            if result2:
+                if result['zgjs'] and result['zbgh'] and  result['jzmj'] and result['fdc_dj'] and result['fczjz']   and result['fwlx'] and result['ybgxmbh']:
+                    result2["emplName"]=result["zgjs"]
+                    mulupdata.append(result2)
+                    fp.append(applyno_file_path[ia])
+                    inset.append("update1")
+                    insertt=False
+                else:
+                    insertt=False
+                    lose_file.append(applyno_file_path[ia])
+              
+        #del sql
+        #del sql2
+                if insertt:
+                        if result['zgjs'] and result['zbgh'] and  result['jzmj'] and result['fdc_dj'] and result['fczjz']   and result['fwlx'] and result['ybgxmbh'] :
+                            updata={}
+                            updata["corpId"]="ASS00113"
+                            updata["emplName"]=result['zgjs']
+                            updata["applyNo"]=result['zbgh']
+                            updata['assessAddress']=result['zl']
+                            updata['assessArea']=float(result['jzmj'])
+                            updata['assessUnitPrice']=int(result['fdc_dj'])
+                            updata['assessTotalPrice']=int(result['fczjz'])*10000
+                            updata['totalFloor']=int(result['zcs']) if result['zcs']  else 0
+                            updata['floor']=int(result['szc']) if result['szc']  else 0
+                            updata['orientation']='朝南'
+                            updata['houseType']=result['fwlx']
+                            updata['schoolHouse']="0"
+                            updata['bronzeMedal']="0"
+                            updata['assessStatus']="6"
+                            updata['assessNo']=result['ybgxmbh']
+                            #updata['fileUnifiedNo']=fileuid
+                            updata['remarks']=""
+                            mulupdata.append(updata)
+                            #ups=updata.copy()
+                            #ups.pop('emplName')
+                            #ups.pop('remarks')
+                            #ups['fileUnifiedNo']=fileuid
+                            fp.append(applyno_file_path[ia])
+                            inset.append("insert1")
+                        else:
+                            
+                            lose_file.append(applyno_file_path[ia])
+                else:
+                    lose_file.append(applyno_file_path[ia])
         print(mulupdata)
         print(fp)
         print(inset)
         if mulupdata:
-            mul=Pool(1)
-            qq2=Manager().Queue()
+
             for ii,lsd in enumerate(mulupdata):
-                #mul.apply(muldup,(lsd,fp[ii],qq,emp[ii]))
-                muldup(lsd,fp[ii],inset[ii],qq2)
-            #mul.close()
-            #mul.join()
+          
+                muldup(lsd,fp[ii],inset[ii])
+
            
 
             
@@ -144,7 +148,7 @@ def upload(fpath,applyNo): #applyNo 是List
     print("---------------完成-------------")
 
 
-def muldup(updata,fpath,insertup,que2):
+def muldup(updata,fpath,insertup,):
     if 'reportId' in list(updata.keys()):
         updata.pop("reportId")
     
@@ -250,12 +254,15 @@ if __name__=="__main__":
    #f=r"E:\applyno"
    #fl=bianli(f,"AID")
    #upload(f,fl)
-
-
-   f="E:\\436.pdf"
-   r=512
+    applyNo=["AID0000037741"]
+    sql2=sql_server("192.168.1.8","sa","ldpjwy","icbc_api","1433")
+    result2=sql2.select(["dbo.icbcapi_assessment"],{"applyNo":applyNo},None) #先去上传的查
+    print(result2)
+    # f="E:\\436.pdf"
+    # r=512
+    # file_rtow(f,r)
    #getMD5(f)
-   file_rtow(f,r)
+   
 
             #print(laresult)
     #exlcelwrite(laresult, "xls//"+time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))+".xls")

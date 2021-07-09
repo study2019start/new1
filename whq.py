@@ -7,10 +7,9 @@ import xlwings as xlw
 from dateutil.relativedelta import relativedelta
 import numpy as np
 from excel import model_excel
-import matplotlib
-matplotlib.use("Agg")
-from matplotlib import pyplot as plt 
+
 import re
+import configparser
 
 class he(object):
     def __init__(self,searchlist,searchlist2,filename,host,database,tablename,us,psw,wheredic=None):
@@ -20,7 +19,7 @@ class he(object):
 
             self.ts=searchlist
         else:
-             self.ts=searchlist2
+            self.ts=searchlist2
         self.f=filename
         self.h=host
         self.d=database
@@ -30,16 +29,29 @@ class he(object):
         self.u=us
         self.t1=datetime.now().strftime("%Y-%m-%d")
         t2=datetime.now()+relativedelta(months=-15)
+        
         self.t3=t2.strftime("%Y-%m-%d")
+        mi=configparser.ConfigParser()
+        mi.readfp(open(r'in.ini'))
+        key1=mi.get('whq','months')
+        t=0-int(key1)
+        self.t4=(datetime.now()+relativedelta(months=t)).strftime("%Y-%m-%d")
 
     def search(self,columnsl):
         smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
         lsr=smo.select(self.w,self.t,self.ts,{'fd10':[self.t3,self.t1]})
-        print(lsr)
+        
         p=pd.DataFrame(lsr,columns=columnsl)
          
         return p
 
+    def search2(self,columnsl):
+        smo=mysql_model(self.d,self.u,self.pw,self.h,"gbk")
+        lsr=smo.select(self.w,self.t,self.ts,{'fd10':[self.t4,self.t1]})
+        
+        p=pd.DataFrame(lsr,columns=columnsl)
+         
+        return p
      
     def readTorF(self):
         df=pd.read_excel(self.f,hearder=None,sheet_name=0,skiprows=4,usecols="K:m")
@@ -54,13 +66,15 @@ class he(object):
 
     def readexcel2(self):
         df=pd.read_excel(self.f,header=None,sheet_name = 0,skiprows=4,usecols='k:m')
+        
         df.dropna(inplace=True)
-        print(df)
+        
         npp=np.digitize(df[12].values,[0,10000000],right=True)
         
         pricelist=[0,0.00022,0.0002]
          
         df[12]=df[12].values*np.array(pricelist)[npp]
+        df[10]=df[10].apply(lambda x: x.replace("号",""))
         #df[12]=df[12].apply(lambda x: x/10000*2 if x>10000000 else x/10000*2.2)
         #df.sort_values(ascending=False,by=13,inplace=True)
         
@@ -119,16 +133,21 @@ class he(object):
 
     def model2(self):
         ff1=self.readexcel2()
-        ff2=self.search(['报告编号','估价人员'])
+        ff2=self.search2(['报告编号','估价人员'])
         dftf=pd.merge(ff1,ff2,how='left',left_on=10,right_on='报告编号')
         dftf['估价人员'].replace("殷?","殷旸",inplace=True)
         dfff=dftf.groupby(['估价人员'],as_index=False)
         ff2=dfff[12].agg(np.sum)
+        print(ff2)
+        pff=dfff.size()
+        pff=pff.reset_index(name='数量')
+        ff3=pd.merge(ff2,pff,how="left")
+        print(ff3)
         xlww=model_excel()
         xlww.xlwingwirte(dftf[[10,12,'估价人员']],self.f,'结果',True,'A1')
         #width =0.5
         #plt.rcParams['font.sans-serif'] = ['SimHei'] 
-        xlww.xlwingwirte(ff2,self.f,'结果',True,'A1')
+        xlww.xlwingwirte(ff3,self.f,'结果',True,'A1')
         #ax=ff2.plot.bar(x='估价人员',y=12,width = width,label ='收入')
        # plt.xticks(rotation=1)
         #mmax=ff2[12].max() // 50
@@ -157,11 +176,11 @@ def repl(fp):
     return fp
 
 if __name__ == "__main__":
-    filepath=r"E:\信衡1 - 副本.xls"
+    filepath=r"F:\_个人贷款房地产押品评估费用（2021年1月1日-2021年3月31日发放）信衡.xls"
     where=[{"category":"G"}]
-    slist=['fd1','fd3','fd7','fd10','fd20','fd26']
+    slist=[]#['fd1','fd3','fd7','fd10','fd20','fd26']
     slist2=['fd1','fd26']
     host='192.168.1.3'
     database='im2006'
     m=he(slist,slist2,filepath,host,database,"reports","user","7940",where)
-    m.m()
+    m.model2()

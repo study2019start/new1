@@ -12,13 +12,13 @@ async def request(v):
     #url = 'https://www.baidu.com'
     #status = requests.get(url)
     await asyncio.sleep(v)
-    print("OK!----------"+str(time.ctime()))
+    print("OK!0----------"+str(time.ctime()))
 
 async def request3(v):
     #url = 'https://www.baidu.com'
     #status = requests.get(url)
     await asyncio.sleep(v)
-    print("OK!----------"+str(time.ctime()))
+    print("OK!3----------"+str(time.ctime()))
    
 
 def start_loop(loop):

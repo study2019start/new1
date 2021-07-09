@@ -114,8 +114,11 @@ class mysql_model(object):
     def quhao(self):
         f=self.read_Max()
         print(f)
-        if f[0][0]:
-            i=f[0][0]+1
+        if f:
+            if f[0][0]:
+                i=f[0][0]+1
+            else:
+                i=1
         else:
             i=1
         list1=['person','depperson','distrperson','carryondate','distrdate','fd26','fd1','fd41',"category","fd11","fd12"]
@@ -134,10 +137,10 @@ def is_number_zheng(n):
      
     return rs
 if __name__ == "__main__":
-    t=mysql_model("im2006",10,"马晓迎")
-    t.pai()
+    t=mysql_model("im2006",10,"马晓迎","user","7940","192.168.1.3","gbk")
+    #t.pai()
     p=t.read_all_l()
-    print(len(p))
+    #print(len(p))
     print(p)
      
    

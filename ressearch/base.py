@@ -149,7 +149,7 @@ class base(object):
                         while True:
                             if self.visibilityy(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr[1]'),5):
                                 break
-                        for mlk in range(1,3):
+                        for mlk in range(1,5):
                             listss=self.get_elemsa(self.dr,('xpath','//div[@class=\'res-table-search\']//table[@class=\'el-table__body\']/tbody/tr'),15)
                             lop=0
                             if listss:  #遍历数据列表的tr
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     
     databaur=r"F:\地价\test\test\conn\Database1.accdb"
     
-    ls=['2020-09-01','2020-11-11','成交','工业']#列表[开始时间，结束时间，交易状态，类型] #土地成交导入access
+    ls=['2020-11-12','2021-5-1','成交','工业']#列表[开始时间，结束时间，交易状态，类型] #土地成交导入access
     search.insert_access(no1,ls,'bj_table',databaur)
     
     #################################################################

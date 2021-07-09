@@ -23,7 +23,7 @@ class sql_server(object):
             return rs
 
 
-    def updateorinsert(self,tablename,where,data,selectt,insertorup=None): #表名   where 字典条件 更新或插入的内容  查找的列         #插入或者更新  where条件里面的第一个是要主键并且在data中包含
+    def updateorinsert(self,tablename,where,data,selectt,insertorup=None): #表名   where 字典条件 更新或插入的内容  查找的列     #插入或者更新  where条件里面的第一个是要主键并且在data中包含
         cursor=self.connect.cursor()
         inorup=True
          
@@ -31,7 +31,9 @@ class sql_server(object):
         sp=None
         if where:
             sp=list(where.keys())[0]
+            rp=sp
             if sp.find("_")>=0:
+                
                 sp=sp[:-3]
 
         if insertorup:
@@ -111,7 +113,7 @@ class sql_server(object):
                         upv2.append(v)
                 upsql=upsql+",".join(upv1)
                 upsql=upsql+"  where "  +sp +r"=%s"
-                upv2.append(data[sp])
+                upv2.append(data[rp])
                 print(upsql)
                 cursor.execute(upsql,tuple(upv2))
                 self.connect.commit()
@@ -140,6 +142,7 @@ class sql_server(object):
             for k,v in where.items():
                 t=True
                 r=True
+                like=False
                 if k[-3:]=="_gt":
                     sp2l.append(k[:-3]+">"+s)
                 elif k[-3:]=="_ge":
@@ -156,17 +159,28 @@ class sql_server(object):
                 elif k[-3:]=="_ot":
                     sp2l.append(k[-3:]+"="+v)
                     r=False
+                elif k[-3:]=="_like":
+                    sp2l.append(k[-3:]+" like " +v)
+                    like=True
                 else:
                     sp2l.append(k+"="+s)
                 if t:
                     if r:
-                        value=value+(v,)
+                        if like:
+                            value=value+("%"+v+"%",)
+                        else:
+                            value=value+(v,)
                 else:
                     for ii in range(len(v)):
                         value=value+(v[ii],)
 
             sp2=sp2+" and ".join(sp2l)
-        sp3=["select ",sp1,"  from ",",".join(tablename),sp2]
+        if type(tablename) is list:
+            table_name=",".join(tablename)
+
+        else :
+            table_name=tablename
+        sp3=["select ",sp1,"  from ",table_name,sp2]
 
         selectlist="".join(sp3)
         print(selectlist)
